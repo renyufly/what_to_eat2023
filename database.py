@@ -1,36 +1,40 @@
 import sqlite3
+
+
 class user_con:
-    def __init__(self,database:str) -> None:
-        self.con=sqlite3.connect(database)
-        self.cur=self.con.cursor()
+    def __init__(self, database: str) -> None:
+        self.con = sqlite3.connect(database)
+        self.cur = self.con.cursor()
         self.cur.execute("CREATE TABLE IF NOT EXISTS data(name TEXT, key TEXT)")
 
     def end(self):
         self.cur.close()
         self.con.close()
-        
+
     def printall(self):
         self.cur.execute("SELECT * FROM data ")
         for item in self.cur:
             print(item)
 
-    def register(self,name:str,key:str) -> bool:
-        self.cur.execute("SELECT * FROM data WHERE name==?",(name,))
-        res=self.cur.fetchall()
+    def register(self, name: str, key: str) -> bool:
+        self.cur.execute("SELECT * FROM data WHERE name==?", (name,))
+        res = self.cur.fetchall()
         if not res:
-            self.cur.execute("INSERT INTO data VALUES(?,?)",(name,key))
+            self.cur.execute("INSERT INTO data VALUES(?,?)", (name, key))
             self.con.commit()
             return True
         else:
             return False
-        
-    def login(self,name:str,key:str) -> bool:
-        self.cur.execute("SELECT * FROM data WHERE name==? AND key==?",(name,key))
-        res=self.cur.fetchall()
+
+    def login(self, name: str, key: str) -> bool:
+        self.cur.execute("SELECT * FROM data WHERE name==? AND key==?", (name, key))
+        res = self.cur.fetchall()
         if not res:
             return False
         else:
             return True
+
+
 '''        
 #testcase        
 con=user_con("data.db")
