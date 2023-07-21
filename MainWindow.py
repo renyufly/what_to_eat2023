@@ -37,7 +37,7 @@ class MainWindow(QWidget):
         self.cafeName.addItems(diningCon.showAllCafeName())
         self.counterName.addItems(diningCon.showCafeAllCounterName(self.cafeName.currentText()))
         self.cafeName.currentTextChanged.connect(lambda: self.change_cafe_func())
-        self.counterName.currentTextChanged.connect(lambda: self.change_counter_func())
+        # self.counterName.currentTextChanged.connect(lambda: self.change_counter_func())
         self.dishes.dishes_change(self.cafeName.currentText(), self.counterName.currentText())
         self.dishesArea.setWidget(self.dishes)
 
