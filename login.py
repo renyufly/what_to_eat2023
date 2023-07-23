@@ -156,8 +156,10 @@ class SigninPage(QDialog):
                 self.signinPwd2Line.clear()
 
 
+'''
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     loginWindow = LoginWindow()
     loginWindow.show()
     sys.exit(app.exec_())
+'''

@@ -1,24 +1,27 @@
 ''' 食堂菜品数据库操作'''
 import sqlite3
 
+
 class dining_user_con:
 
-    def __init__(self, database:str) -> None:
+    def __init__(self, database: str) -> None:
         self.con = sqlite3.connect(database)
         self.cur = self.con.cursor()
+
+        self.cur.execute('''PRAGMA foreign_keys=ON;''')  # SQLite默认外键是关闭的，需要在连接数据库后打开
 
         self.cur.execute('''
         CREATE TABLE IF NOT EXISTS cafeteria(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL);''')   # 食堂表——cafeteria
+        name TEXT NOT NULL);''')  # 食堂表——cafeteria
 
         self.cur.execute('''
         CREATE TABLE IF NOT EXISTS food_counter(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         cafeteria_id INTEGER NOT NULL,
-        FOREIGN KEY (cafeteria_id) REFERENCES cafeteria (id));
-        ''')    # 食堂柜台表——food_counter
+        FOREIGN KEY (cafeteria_id) REFERENCES cafeteria (id) ON DELETE CASCADE) ;
+        ''')  # 食堂柜台表——food_counter
 
         self.cur.execute('''
         CREATE TABLE IF NOT EXISTS dishes(
@@ -26,8 +29,8 @@ class dining_user_con:
         name TEXT NOT NULL,
         
         counter_id INTEGER NOT NULL,
-        FOREIGN KEY (counter_id) REFERENCES food_counter (id));
-        ''')   # 食堂柜台的菜品表——dishes
+        FOREIGN KEY (counter_id) REFERENCES food_counter (id) ON DELETE CASCADE);
+        ''')  # 食堂柜台的菜品表——dishes
 
         '''初始化时就预先添加好各菜品'''
         self.cur.execute("SELECT COUNT(*) FROM dishes")
@@ -35,8 +38,8 @@ class dining_user_con:
         if count <= 0:
             self.initial_add_dished()
 
-
     def initial_add_dished(self):
+        '''初始化时向表中添加菜品'''
         cafeterias = [
             ('学一食堂'),
             ('学二食堂'),
@@ -55,10 +58,10 @@ class dining_user_con:
         self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', ('学一食堂',))
         cafe_id = self.cur.fetchone()[0]
         counters = [
-                ('一柜台', cafe_id),
-                ('二柜台', cafe_id),
-                ('三柜台', cafe_id),
-                ('四柜台', cafe_id),
+            ('一柜台', cafe_id),
+            ('二柜台', cafe_id),
+            ('三柜台', cafe_id),
+            ('四柜台', cafe_id),
         ]
         for item in counters:
             self.cur.execute('''
@@ -66,7 +69,7 @@ class dining_user_con:
                     ''', item)
         self.con.commit()
         '''一柜台  (每个柜台10道菜)'''
-        self.cur.execute("SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?",(cafe_id, '一柜台'))
+        self.cur.execute("SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?", (cafe_id, '一柜台'))
         counter_id = self.cur.fetchone()[0]
         one_dishes = [
             ('牛肉卤粉', counter_id),
@@ -149,7 +152,6 @@ class dining_user_con:
                                     ''', item)
 
         self.con.commit()
-
 
         '''学二食堂'''
         self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', ('学二食堂',))
@@ -272,7 +274,6 @@ class dining_user_con:
 
         self.con.commit()
 
-
         '''学五食堂'''
         self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', ('学五食堂',))
         cafe_id = self.cur.fetchone()[0]
@@ -350,10 +351,6 @@ class dining_user_con:
 
         self.con.commit()
 
-
-
-
-
     def end(self):
         self.cur.close()
         self.con.close()
@@ -369,7 +366,9 @@ class dining_user_con:
         self.cur.execute("SELECT * FROM dishes ")
         for item in self.cur:
             print(item)
+
     ''' ——————————————读 取 操 作————————————————'''
+
     def showAllCafeName(self) -> list:
         '''展示所有食堂名字'''
         self.cur.execute('''SELECT name FROM cafeteria ''')
@@ -381,7 +380,7 @@ class dining_user_con:
 
         '''返回结果：['学一食堂', '学二食堂', '学五食堂']'''
 
-    def showCafeAllCounterName(self, cafename:str) -> list:
+    def showCafeAllCounterName(self, cafename: str) -> list:
         '''根据食堂名字展示对应所有柜台名字'''
         self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', (cafename,))
         cafe_id = self.cur.fetchall()[0]
@@ -394,11 +393,12 @@ class dining_user_con:
 
         '''返回结果：['一柜台', '二柜台', '三柜台', '四柜台']'''
 
-    def showCounterAllDish(self, cafename:str, countername:str) -> list:
+    def showCounterAllDish(self, cafename: str, countername: str) -> list:
         '''根据食堂及柜台名字展示对应所有菜名'''
         self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', (cafename,))
         cafe_id = self.cur.fetchall()[0]
-        self.cur.execute('''SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?''', (cafe_id[0], countername))
+        self.cur.execute('''SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?''',
+                         (cafe_id[0], countername))
         counter_id = self.cur.fetchall()[0]
         self.cur.execute('''SELECT * FROM dishes WHERE counter_id = ?''', counter_id)
         dish = self.cur.fetchall()
@@ -409,34 +409,115 @@ class dining_user_con:
 
         '''返回结果：['麻辣香锅', '宫保鸡丁', '卤肉饭套餐']'''
 
-    def showOneDish(self, cafename:str, countername:str, dishname:str) -> list:
+    def showOneDish(self, cafename: str, countername: str, dishname: str) -> list:
         '''根据食堂、柜台、菜名返回指定的一道菜的信息'''
         self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', (cafename,))
         cafe_id = self.cur.fetchall()[0]
         self.cur.execute('''SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?''',
                          (cafe_id[0], countername))
         counter_id = self.cur.fetchall()[0]
-        self.cur.execute('''SELECT * FROM dishes WHERE counter_id = ? AND name = ?''', (counter_id[0],dishname))
+        self.cur.execute('''SELECT * FROM dishes WHERE counter_id = ? AND name = ?''', (counter_id[0], dishname))
         dish = self.cur.fetchall()
         return dish
 
         '''返回结果：[(41, '麻辣香锅', 5)]'''
+
     '''————————————————更 新 操 作————————————————————————————————'''
 
+    def updateCafeName(self, cafename: str, newname: str):
+        '''更新食堂名字（其他关联信息不变）'''
+        self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', (cafename,))
+        cafe_id = self.cur.fetchall()[0]
+        self.cur.execute('UPDATE cafeteria SET name = ? WHERE id = ?', (newname, cafe_id[0]))
+        self.con.commit()
 
+    def updateCounterName(self, cafename: str, countername: str, newname: str):
+        '''更新柜台名字（其他关联信息不变）'''
+        self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', (cafename,))
+        cafe_id = self.cur.fetchall()[0]
+        self.cur.execute('''SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?''',
+                         (cafe_id[0], countername))
+        counter_id = self.cur.fetchall()[0]
+        self.cur.execute('UPDATE food_counter SET name = ? WHERE id = ?', (newname, counter_id[0]))
+        self.con.commit()
 
+    def updateDishName(self, cafename: str, countername: str, dishname: str, newname: str):
+        '''更新菜名(其他关联信息不变)'''
+        self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', (cafename,))
+        cafe_id = self.cur.fetchall()[0]
+        self.cur.execute('''SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?''',
+                         (cafe_id[0], countername))
+        counter_id = self.cur.fetchall()[0]
+        self.cur.execute('''SELECT id FROM dishes WHERE counter_id = ? AND name = ?''', (counter_id[0], dishname))
+        dish_id = self.cur.fetchall()[0]
+        self.cur.execute('''UPDATE dishes SET name = ? WHERE id = ?''', (newname, dish_id[0]))
+        self.con.commit()
 
     '''————————————————删 除 操 作————————————————————————————————————————'''
 
+    def deleteCafe(self, cafename: str):
+        '''删除某个食堂（关联信息如柜台及菜品一并删除）'''
+        self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', (cafename,))
+        cafe_id = self.cur.fetchall()[0]
+        self.cur.execute('DELETE FROM cafeteria WHERE id = ?', (cafe_id[0],))
+        self.con.commit()
+
+    def deleteCounter(self, cafename: str, countername: str):
+        '''删除某柜台（级联删除）'''
+        self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', (cafename,))
+        cafe_id = self.cur.fetchall()[0]
+        self.cur.execute('''SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?''',
+                         (cafe_id[0], countername))
+        counter_id = self.cur.fetchall()[0]
+        self.cur.execute('DELETE FROM food_counter WHERE id = ?', (counter_id[0],))
+        self.con.commit()
+
+    def deleteDish(self, cafename: str, countername: str, dishname: str):
+        '''删除某菜品（级联删除）'''
+        self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', (cafename,))
+        cafe_id = self.cur.fetchall()[0]
+        self.cur.execute('''SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?''',
+                         (cafe_id[0], countername))
+        counter_id = self.cur.fetchall()[0]
+        self.cur.execute('''SELECT id FROM dishes WHERE counter_id = ? AND name = ?''', (counter_id[0], dishname))
+        dish_id = self.cur.fetchall()[0]
+        self.cur.execute('DELETE FROM dishes WHERE id = ?', (dish_id[0],))
+        self.con.commit()
+
+    '''————————————————创建 / 新增 操 作——————————————————————————————————————————'''
+
+    def insertCafe(self, cafename: str):
+        '''向表中新增食堂'''
+        self.cur.execute('''
+        INSERT INTO cafeteria(name) VALUES (?)
+        ''', (cafename,))
+        self.con.commit()
+
+    def insertCounter(self, cafename: str, countername: str):
+        '''向表中根据食堂名cafename新增柜台'''
+        self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', (cafename,))
+        cafe_id = self.cur.fetchall()[0]
+        self.cur.execute('''
+        INSERT INTO food_counter(name, cafeteria_id) VALUES (?, ?)
+        ''', (countername, cafe_id[0]))
+        self.con.commit()
+
+    def insertDish(self, cafename: str, countername: str, dishname: str):
+        '''根据食堂名、柜台名新增菜品'''
+        self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', (cafename,))
+        cafe_id = self.cur.fetchall()[0]
+        self.cur.execute('''SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?''',
+                         (cafe_id[0], countername))
+        counter_id = self.cur.fetchall()[0]
+        self.cur.execute('''
+        INSERT INTO dishes(name, counter_id) VALUES (?, ?)
+        ''', (dishname, counter_id[0]))
+        self.con.commit()
 
 
-
-
-
-
-#testcase
-#con=dining_user_con("diningData.db")
-#con.printAll()
+# testcase
+con = dining_user_con("diningData.db")
+# con.printAll()
 '''
 print(con.showAllCafeName())
 print(con.showCafeAllCounterName('学一食堂'))
@@ -445,6 +526,19 @@ print(con.showCounterAllDish('学二食堂', '一柜台'))
 print(con.showOneDish('学二食堂', '一柜台', '麻辣香锅'))
 con.end()
 '''
+
+'''con.insertCafe('学六食堂')
+con.insertCounter('学六食堂', '抽象柜台')
+con.insertDish('学六食堂', '抽象柜台', '泔水')'''
+
+# con.updateCafeName('学一食堂', '沙河东区食堂')
+# con.updateCounterName('沙河东区食堂', '一柜台', '6324柜台')
+# con.updateDishName('沙河东区食堂','6324柜台','饺子','草莓米线')
+# con.deleteDish('学六食堂', '抽象柜台', '泔水')
+
+# con.printAll()
+# con.end()
+
 # clearAllData
 '''
 con=dining_user_con("diningData.db")
