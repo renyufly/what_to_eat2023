@@ -366,11 +366,14 @@ class BookPart(QWidget):
             temp_layout = QHBoxLayout()
             item_label = QLabel(item)
             delete_button = QPushButton('取消收藏')
+            delete_button.clicked.connect(lambda: self.delete_star(item))
             temp_layout.addWidget(item_label)
             temp_layout.addWidget(delete_button)
             self.allLayout.addLayout(temp_layout)
-            print('here')
         self.setLayout(self.allLayout)
+
+    def delete_star(self, star_item: str):
+        recordCon.deleteStar(self.userName, star_item)
 
 
 if __name__ == '__main__':
