@@ -2,8 +2,10 @@ from PyQt5.Qt import *
 import sys
 from database import user_con
 from MainWindow import MainWindow
+from userRecordDatabase import user_record_con
 
 userCon = user_con('data.db')
+userRecordCon = user_record_con('userCon.db')
 
 
 # 登录界面
@@ -147,6 +149,8 @@ class SigninPage(QDialog):
             QMessageBox.critical(self, '错误', '两次输入的密码不一致！')
         else:
             if userCon.register(self.signinUserLine.text(), self.signinPwdLine.text()):
+                userRecordCon.createUserTable(self.signinUserLine.text())
+                userRecordCon.createUserStar(self.signinUserLine.text())
                 QMessageBox.information(self, '提示', '注册成功，请重新登陆')
                 self.close()
             else:
@@ -156,10 +160,10 @@ class SigninPage(QDialog):
                 self.signinPwd2Line.clear()
 
 
-'''
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     loginWindow = LoginWindow()
     loginWindow.show()
     sys.exit(app.exec_())
-'''
+

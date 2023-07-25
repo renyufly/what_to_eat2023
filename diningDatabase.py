@@ -27,8 +27,8 @@ class dining_user_con:
         CREATE TABLE IF NOT EXISTS dishes(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        
         counter_id INTEGER NOT NULL,
+        number INTEGER NOT NULL,
         FOREIGN KEY (counter_id) REFERENCES food_counter (id) ON DELETE CASCADE);
         ''')  # 食堂柜台的菜品表——dishes
 
@@ -39,317 +39,37 @@ class dining_user_con:
             self.initial_add_dished()
 
     def initial_add_dished(self):
-        '''初始化时向表中添加菜品'''
-        cafeterias = [
-            ('学一食堂'),
-            ('学二食堂'),
-            ('学五食堂'),
+        '''初始化时通过读入外部文件向表中添加菜品'''
+        '''学一食堂 一柜台 饺子'''
+        with open('data_initial.txt', 'r', encoding='utf-8') as file:
+            for line in file:
+                cafename, countername, dishname = line.strip().split(' ')
+                self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', (cafename,))
+                cafe_id = self.cur.fetchall()
+                if cafe_id:
+                    pass
+                else:
+                    self.cur.execute('''INSERT INTO cafeteria(name) VALUES (?)''', (cafename,))
+                    self.con.commit()
+                    self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', (cafename,))
+                    cafe_id = self.cur.fetchall()
 
-        ]
+                self.cur.execute('''SELECT id FROM food_counter WHERE name = ? AND cafeteria_id = ?''',
+                                 (countername, cafe_id[0][0]))
+                counter_id = self.cur.fetchall()
+                if counter_id:
+                    pass
+                else:
+                    self.cur.execute('''INSERT INTO food_counter(name, cafeteria_id) VALUES(?,?)''',
+                                     (countername, cafe_id[0][0]))
+                    self.con.commit()
+                    self.cur.execute('''SELECT id FROM food_counter WHERE name = ? AND cafeteria_id = ?''',
+                                     (countername, cafe_id[0][0]))
+                    counter_id = self.cur.fetchall()
 
-        for item in cafeterias:
-            self.cur.execute('''
-            INSERT INTO cafeteria(name) VALUES (?)
-            ''', (item,))
-
-        self.con.commit()
-
-        '''学一食堂'''
-        self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', ('学一食堂',))
-        cafe_id = self.cur.fetchone()[0]
-        counters = [
-            ('一柜台', cafe_id),
-            ('二柜台', cafe_id),
-            ('三柜台', cafe_id),
-            ('四柜台', cafe_id),
-        ]
-        for item in counters:
-            self.cur.execute('''
-                    INSERT INTO food_counter(name, cafeteria_id) VALUES (?, ?)
-                    ''', item)
-        self.con.commit()
-        '''一柜台  (每个柜台10道菜)'''
-        self.cur.execute("SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?", (cafe_id, '一柜台'))
-        counter_id = self.cur.fetchone()[0]
-        one_dishes = [
-            ('牛肉卤粉', counter_id),
-            ('饺子', counter_id),
-            ('鸡肉米粉', counter_id),
-            ('麻辣烫', counter_id),
-            ('尖椒炒蛋', counter_id),
-            ('蒜蓉生菜', counter_id),
-            ('宫保鸡丁', counter_id),
-            ('麻辣拌面', counter_id),
-            ('肉末蛋包饭', counter_id),
-            ('土豆炖牛肉', counter_id),
-        ]
-        for item in one_dishes:
-            self.cur.execute('''
-            INSERT INTO dishes(name, counter_id) VALUES (?, ?)
-            ''', item)
-
-        self.con.commit()
-        '''二柜台'''
-        self.cur.execute("SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?", (cafe_id, '二柜台'))
-        counter_id = self.cur.fetchone()[0]
-        one_dishes = [
-            ('麻辣鱼片', counter_id),
-            ('清炒花菜', counter_id),
-            ('红烧鸭块', counter_id),
-            ('胡辣汤', counter_id),
-            ('西红柿牛腩', counter_id),
-            ('炒绿豆芽', counter_id),
-            ('小白菜炒木耳', counter_id),
-            ('西红柿炒鸡蛋', counter_id),
-            ('蒸玉米', counter_id),
-            ('清炖鸡肉', counter_id),
-        ]
-        for item in one_dishes:
-            self.cur.execute('''
-                    INSERT INTO dishes(name, counter_id) VALUES (?, ?)
-                    ''', item)
-
-        self.con.commit()
-        '''三柜台'''
-        self.cur.execute("SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?", (cafe_id, '三柜台'))
-        counter_id = self.cur.fetchone()[0]
-        one_dishes = [
-            ('红烧丸子', counter_id),
-            ('酱肉馅饼', counter_id),
-            ('炸鸡排', counter_id),
-            ('木耳炒青菜', counter_id),
-            ('青菜木耳烩肉', counter_id),
-            ('清炒白菜', counter_id),
-            ('干煸豆角土豆条', counter_id),
-            ('糖醋肉', counter_id),
-            ('韭菜鸡蛋馅饼', counter_id),
-            ('圆白菜炒面', counter_id),
-        ]
-        for item in one_dishes:
-            self.cur.execute('''
-                            INSERT INTO dishes(name, counter_id) VALUES (?, ?)
-                            ''', item)
-
-        self.con.commit()
-        '''四柜台'''
-        self.cur.execute("SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?", (cafe_id, '四柜台'))
-        counter_id = self.cur.fetchone()[0]
-        one_dishes = [
-            ('豆角红烧肉', counter_id),
-            ('豆角炒面', counter_id),
-            ('烧排骨', counter_id),
-            ('麻辣一锅鲜', counter_id),
-            ('东北肉卷', counter_id),
-            ('酱爆鸡丁', counter_id),
-            ('飘香鸡蛋', counter_id),
-            ('川椒肉排', counter_id),
-            ('重庆卤粉', counter_id),
-            ('脆皮五花', counter_id),
-        ]
-        for item in one_dishes:
-            self.cur.execute('''
-                                    INSERT INTO dishes(name, counter_id) VALUES (?, ?)
-                                    ''', item)
-
-        self.con.commit()
-
-        '''学二食堂'''
-        self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', ('学二食堂',))
-        cafe_id = self.cur.fetchone()[0]
-        counters = [
-            ('一柜台', cafe_id),
-            ('二柜台', cafe_id),
-            ('三柜台', cafe_id),
-            ('四柜台', cafe_id),
-            ('五柜台', cafe_id),
-        ]
-        for item in counters:
-            self.cur.execute('''
-                            INSERT INTO food_counter(name, cafeteria_id) VALUES (?, ?)
-                            ''', item)
-        self.con.commit()
-        '''一柜台  (每个柜台10道菜)'''
-        self.cur.execute("SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?", (cafe_id, '一柜台'))
-        counter_id = self.cur.fetchone()[0]
-        one_dishes = [
-            ('麻辣香锅', counter_id),
-            ('宫保鸡丁', counter_id),
-            ('卤肉饭套餐', counter_id),
-            ('五谷豆浆', counter_id),
-            ('土豆牛肉', counter_id),
-            ('风味烤鸡腿', counter_id),
-            ('饺子', counter_id),
-            ('口水鸡', counter_id),
-            ('鱼香肉丝', counter_id),
-            ('豆角烧茄子', counter_id),
-        ]
-        for item in one_dishes:
-            self.cur.execute('''
-                    INSERT INTO dishes(name, counter_id) VALUES (?, ?)
-                    ''', item)
-
-        self.con.commit()
-        '''二柜台'''
-        self.cur.execute("SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?", (cafe_id, '二柜台'))
-        counter_id = self.cur.fetchone()[0]
-        one_dishes = [
-            ('葱香鸡蛋饼', counter_id),
-            ('茴香肉馅饼', counter_id),
-            ('西红柿炒鸡蛋', counter_id),
-            ('红烧腐竹', counter_id),
-            ('千叶豆腐', counter_id),
-            ('红烧排骨', counter_id),
-            ('牛肉面', counter_id),
-            ('炒花菜', counter_id),
-            ('青椒炒鸡蛋', counter_id),
-            ('红烧丸子', counter_id),
-        ]
-        for item in one_dishes:
-            self.cur.execute('''
-                            INSERT INTO dishes(name, counter_id) VALUES (?, ?)
-                            ''', item)
-
-        self.con.commit()
-        '''三柜台'''
-        self.cur.execute("SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?", (cafe_id, '三柜台'))
-        counter_id = self.cur.fetchone()[0]
-        one_dishes = [
-            ('红烧茄子', counter_id),
-            ('香煎玉米饼', counter_id),
-            ('香辣渔粉', counter_id),
-            ('梅菜扣肉', counter_id),
-            ('炒豆芽', counter_id),
-            ('韭菜炒鸡蛋', counter_id),
-            ('红烧香菇', counter_id),
-            ('红烧带鱼', counter_id),
-            ('胡萝卜炖牛肉', counter_id),
-            ('青瓜炒鸡蛋', counter_id),
-        ]
-        for item in one_dishes:
-            self.cur.execute('''
-                                    INSERT INTO dishes(name, counter_id) VALUES (?, ?)
-                                    ''', item)
-
-        self.con.commit()
-        '''四柜台'''
-        self.cur.execute("SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?", (cafe_id, '四柜台'))
-        counter_id = self.cur.fetchone()[0]
-        one_dishes = [
-            ('红烧鱼块', counter_id),
-            ('韭菜干丝', counter_id),
-            ('锅包肉', counter_id),
-            ('白菜油豆腐', counter_id),
-            ('蒸蛋', counter_id),
-            ('炒生菜', counter_id),
-            ('炒青菜', counter_id),
-            ('西红柿炒茄子', counter_id),
-            ('菠萝炒粉丝', counter_id),
-            ('炒白萝卜丝', counter_id),
-        ]
-        for item in one_dishes:
-            self.cur.execute('''
-                                            INSERT INTO dishes(name, counter_id) VALUES (?, ?)
-                                            ''', item)
-
-        self.con.commit()
-        '''五柜台'''
-        self.cur.execute("SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?", (cafe_id, '五柜台'))
-        counter_id = self.cur.fetchone()[0]
-        one_dishes = [
-            ('豆角炒肉', counter_id),
-            ('麻辣烫', counter_id),
-            ('石锅拌饭', counter_id),
-            ('糯米排骨', counter_id),
-            ('刀削面', counter_id),
-            ('小酥肉', counter_id),
-            ('杭椒牛柳', counter_id),
-            ('丸子白菜汤', counter_id),
-            ('土豆鸡块', counter_id),
-            ('炒莴苣', counter_id),
-        ]
-        for item in one_dishes:
-            self.cur.execute('''
-                                                    INSERT INTO dishes(name, counter_id) VALUES (?, ?)
-                                                    ''', item)
-
-        self.con.commit()
-
-        '''学五食堂'''
-        self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', ('学五食堂',))
-        cafe_id = self.cur.fetchone()[0]
-        counters = [
-            ('一柜台', cafe_id),
-            ('二柜台', cafe_id),
-            ('三柜台', cafe_id),
-        ]
-        for item in counters:
-            self.cur.execute('''
-                                   INSERT INTO food_counter(name, cafeteria_id) VALUES (?, ?)
-                                   ''', item)
-        self.con.commit()
-        '''一柜台  (每个柜台10道菜)'''
-        self.cur.execute("SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?", (cafe_id, '一柜台'))
-        counter_id = self.cur.fetchone()[0]
-        one_dishes = [
-            ('红烧肉', counter_id),
-            ('鱼粉', counter_id),
-            ('麻辣香锅', counter_id),
-            ('烧茄子', counter_id),
-            ('口水鸡', counter_id),
-            ('清炒圆白菜', counter_id),
-            ('萝卜炖牛肉', counter_id),
-            ('排骨玉米汤', counter_id),
-            ('猪脚汤', counter_id),
-            ('番茄牛腩汤', counter_id),
-        ]
-        for item in one_dishes:
-            self.cur.execute('''
-                           INSERT INTO dishes(name, counter_id) VALUES (?, ?)
-                           ''', item)
-
-        self.con.commit()
-        '''二柜台'''
-        self.cur.execute("SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?", (cafe_id, '二柜台'))
-        counter_id = self.cur.fetchone()[0]
-        one_dishes = [
-            ('肉炒圆白菜', counter_id),
-            ('溜丸子', counter_id),
-            ('西红柿炒鸡蛋', counter_id),
-            ('韭黄炒鸡蛋', counter_id),
-            ('鱼头豆腐汤', counter_id),
-            ('炒面', counter_id),
-            ('豇杂面', counter_id),
-            ('红烧鱼套餐', counter_id),
-            ('酱大骨套餐', counter_id),
-            ('酱爆鸡丁', counter_id),
-        ]
-        for item in one_dishes:
-            self.cur.execute('''
-                                   INSERT INTO dishes(name, counter_id) VALUES (?, ?)
-                                   ''', item)
-
-        self.con.commit()
-        '''三柜台'''
-        self.cur.execute("SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?", (cafe_id, '三柜台'))
-        counter_id = self.cur.fetchone()[0]
-        one_dishes = [
-            ('外婆肘子', counter_id),
-            ('紫米发糕', counter_id),
-            ('酸菜鱼', counter_id),
-            ('咖喱鸡块饭', counter_id),
-            ('干锅烤肉饭', counter_id),
-            ('糖醋排骨', counter_id),
-            ('韩式牛肉铁板饭', counter_id),
-            ('蚕豆烧牛肉', counter_id),
-            ('五花肉烤肉饭', counter_id),
-            ('木须肉', counter_id),
-        ]
-        for item in one_dishes:
-            self.cur.execute('''
-                                           INSERT INTO dishes(name, counter_id) VALUES (?, ?)
-                                           ''', item)
-
-        self.con.commit()
+                self.cur.execute('''INSERT INTO dishes(name, counter_id, number) VALUES(?,?,?)''',
+                                 (dishname, counter_id[0][0], 0))
+                self.con.commit()
 
     def end(self):
         self.cur.close()
@@ -514,11 +234,62 @@ class dining_user_con:
         ''', (dishname, counter_id[0]))
         self.con.commit()
 
+    '''—————————————————必吃排行榜相关—————————————————————————————————————————————————'''
 
-# testcase
+    def increaseNumber(self, cafename: str, countername: str, dishname: str):
+        '''用户吃过菜品后为次数+1（前端GUI不用调用！在addDish里即自动执行）'''
+        self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', (cafename,))
+        cafe_id = self.cur.fetchall()[0]
+        self.cur.execute('''SELECT id FROM food_counter WHERE cafeteria_id = ? AND name = ?''',
+                         (cafe_id[0], countername))
+        counter_id = self.cur.fetchall()[0]
+        self.cur.execute('''SELECT id FROM dishes WHERE counter_id = ? AND name = ?''', (counter_id[0], dishname))
+        dish_id = self.cur.fetchall()[0]
+        self.cur.execute('''SELECT number FROM dishes WHERE id = ?''', (dish_id[0],))
+        num = self.cur.fetchall()[0][0]
+        num = num + 1
+        self.cur.execute('''UPDATE dishes SET number = ? WHERE id = ?''', (num, dish_id[0]))
+        self.con.commit()
+
+    def showAllDishRankingList(self):
+        '''菜品排行榜展示所有——菜名 柜台名 食堂名'''
+        self.cur.execute('''SELECT * FROM dishes''')
+        ret_list = self.cur.fetchall()
+        sorted_list = sorted(ret_list, key=lambda x: x[3], reverse=True)
+        ret = []
+        for item in sorted_list:
+            self.cur.execute('''SELECT name, cafeteria_id FROM food_counter WHERE id = ?''', (item[2],))
+            countername, cafe_id = self.cur.fetchall()[0]
+            self.cur.execute('''SELECT name FROM cafeteria WHERE id = ?''', (cafe_id,))
+            cafename = self.cur.fetchall()[0]
+            ret.append(item[1] + " " + countername + " " + cafename[0])
+        return ret
+
+    def showTop50DishRankingList(self):
+        '''菜品排行榜展示前50——菜名 柜台名 食堂名'''
+        self.cur.execute('''SELECT * FROM dishes''')
+        ret_list = self.cur.fetchall()
+        sorted_list = sorted(ret_list, key=lambda x: x[3], reverse=True)
+        cnt = 0
+        ret = []
+        for item in sorted_list:
+            cnt += 1
+            self.cur.execute('''SELECT name, cafeteria_id FROM food_counter WHERE id = ?''', (item[2],))
+            countername, cafe_id = self.cur.fetchall()[0]
+            self.cur.execute('''SELECT name FROM cafeteria WHERE id = ?''', (cafe_id,))
+            cafename = self.cur.fetchall()[0]
+            ret.append(item[1] + " " + countername + " " + cafename[0])
+            if cnt == 50:
+                break
+        return ret
+
+
+'''# testcase
 con = dining_user_con("diningData.db")
-# con.printAll()
-'''
+con.printAll()
+# print(con.showAllDishRankingList())
+con.end()
+
 print(con.showAllCafeName())
 print(con.showCafeAllCounterName('学一食堂'))
 print(con.showCounterAllDish('学二食堂', '一柜台')[0])
@@ -536,15 +307,5 @@ con.insertDish('学六食堂', '抽象柜台', '泔水')'''
 # con.updateDishName('沙河东区食堂','6324柜台','饺子','草莓米线')
 # con.deleteDish('学六食堂', '抽象柜台', '泔水')
 
-# con.printAll()
-# con.end()
-
-# clearAllData
-'''
-con=dining_user_con("diningData.db")
-con.execute("DELETE FROM cafeteria")
-con.execute("DELETE FROM food_counter")
-con.execute("DELETE FROM dishes")
-con.commit()
-con.end
-'''
+'''con.printAll()
+con.end()'''
