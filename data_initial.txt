@@ -1,21 +1,31 @@
-学一食堂 一柜台 牛肉卤粉
-学一食堂 一柜台 饺子
-学一食堂 一柜台 鸡肉米粉
-学一食堂 一柜台 麻辣烫
-学一食堂 一柜台 尖椒炒蛋
-学一食堂 一柜台 蒜蓉生菜
-学一食堂 一柜台 宫保鸡丁
-学一食堂 一柜台 麻辣拌面
-学一食堂 一柜台 肉末蛋包饭
-学一食堂 一柜台 土豆炖牛肉
-学一食堂 二柜台 麻辣鱼片
-学一食堂 二柜台 清炒花菜
-学一食堂 二柜台 红烧鸭块
-学一食堂 二柜台 胡辣汤
-学一食堂 二柜台 西红柿牛腩
-学一食堂 二柜台 炒绿豆芽
-学一食堂 二柜台 小白菜炒木耳
-学一食堂 二柜台 西红柿炒鸡蛋
+学一食堂 早餐柜台 牛肉卤粉 ./img/Xue1/counter0/niuroulufen.jpg
+学一食堂 早餐柜台 饺子 ./img/Xue1/counter0/jiaozi.jpg
+学一食堂 早餐柜台 麻辣拌面 ./img/Xue1/counter0/malabanmian.jpg
+学一食堂 早餐柜台 鸡肉米粉 ./img/Xue1/counter0/jiroumifen.jpg
+学一食堂 早餐柜台 牛肉包子 ./img/Xue1/counter0/niuroubaozi.jpg
+学一食堂 早餐柜台 素包子 ./img/Xue1/counter0/subaozi.jpg
+学一食堂 早餐柜台 酱肉包子 ./img/Xue1/counter0/jiangroubaozi.jpg
+学一食堂 早餐柜台 馄饨 ./img/Xue1/counter0/hundun.jpg
+学一食堂 早餐柜台 酱肉馅饼 ./img/Xue1/counter0/jiangrouxianbing.jpg
+学一食堂 早餐柜台 千层酥 ./img/Xue1/counter0/qiancengsu.jpg
+
+学一食堂 一柜台 麻辣烫 ./img/Xue1/counter1/malatang.jpg
+学一食堂 一柜台 尖椒炒蛋 ./img/Xue1/counter1/jianjiaochaodan.jpg
+学一食堂 一柜台 蒜蓉生菜 ./img/Xue1/counter1/suanrongshengcai.jpg
+学一食堂 一柜台 宫保鸡丁 ./img/Xue1/counter1/gongbaojiding.jpg
+学一食堂 一柜台 土豆炖牛肉 ./img/Xue1/counter1/tudoudunniurou.jpg
+学一食堂 一柜台 麻辣鱼片 ./img/Xue1/counter1/malayupian.jpg
+学一食堂 一柜台 清炒花菜 ./img/Xue1/counter1/qingchaohuacai.jpg
+学一食堂 一柜台 清炒豆芽 ./img/Xue1/counter1/qingchaodouya.jpg
+学一食堂 一柜台 清炖鸡肉 ./img/Xue1/counter1/qingdunjirou.jpg
+学一食堂 一柜台 小白菜炒木耳 ./img/Xue1/counter1/xiaobaicaichaomuer.jpg
+
+学一食堂 二柜台 醋溜木须 ./img/Xue1/counter2/culiumuxv.jpg
+学一食堂 二柜台 猪血粉丝炖白菜 ./img/Xue1/counter2/zhuxuefensidunbaicai.jpg
+学一食堂 二柜台 西红柿牛腩 ./img/Xue1/counter2/xihongshiniunan.jpg
+学一食堂 二柜台 木耳炒青菜
+学一食堂 二柜台 干煸豆角土豆条
+学一食堂 二柜台 西红柿炒鸡蛋 ./img/Xue1/counter2/xihongshichaojidan.jpg
 学一食堂 二柜台 蒸玉米
 学一食堂 二柜台 清炖鸡肉
 学一食堂 三柜台 红烧丸子
@@ -69,15 +79,15 @@
 学二食堂 三柜台 胡萝卜炖牛肉
 学二食堂 三柜台 青瓜炒鸡蛋
 学二食堂 四柜台 红烧鱼块
-学二食堂 四柜台 韭菜干丝
-学二食堂 四柜台 锅包肉
-学二食堂 四柜台 白菜油豆腐
-学二食堂 四柜台 蒸蛋
-学二食堂 四柜台 炒生菜
-学二食堂 四柜台 炒青菜
-学二食堂 四柜台 西红柿炒茄子
-学二食堂 四柜台 菠萝炒粉丝
-学二食堂 四柜台 炒白萝卜丝
+学二食堂 四柜台 韭菜干丝  
+学二食堂 四柜台 锅包肉 
+学二食堂 四柜台 白菜油豆腐 
+学二食堂 四柜台 蒸蛋 
+学二食堂 四柜台 炒生菜 
+学二食堂 四柜台 炒青菜 
+学二食堂 四柜台 西红柿炒茄子 
+学二食堂 四柜台 菠萝炒粉丝 
+学二食堂 四柜台 炒白萝卜丝 
 学二食堂 五柜台 豆角炒肉
 学二食堂 五柜台 麻辣烫
 学二食堂 五柜台 石锅拌饭

@@ -9,20 +9,20 @@ recordCon = user_record_con('userCon.db')
 
 class MainWindow(QWidget):
 
-    def __init__(self, usr: str):
+    def __init__(self, user: str):
         super(MainWindow, self).__init__()
-        self.curUser = usr
+        self.userName = user
         self.setWindowTitle('北航吃什么')
         self.resize(1500, 800)
 
         self.cafeLabel = QLabel('请选择目标食堂')
         self.cafeName = QComboBox(self)
         self.counterLabel = QLabel('请选择目标柜台')
-        self.userLabel = QLabel('当前用户：' + usr)
+        self.userLabel = QLabel('当前用户：' + self.userName)
         self.checkButton = QPushButton('确定')
         self.logoutButton = QPushButton('退出')
         self.counterName = QComboBox(self)
-        self.dishes = Dishes()
+        self.dishes = Dishes(self.userName)
         self.dishesArea = QScrollArea(self)
 
         self.cafeNameLayOut = QVBoxLayout()
@@ -50,18 +50,8 @@ class MainWindow(QWidget):
             diningCon.showCafeAllCounterName(self.cafeName.currentText()))
 
     def change_dishes_func(self):
-        # print(self.cafeName.currentText(), self.counterName.currentText())
         self.dishes.dishes_change(self.cafeName.currentText(), self.counterName.currentText())
-        # print('here')
         self.dishesArea.setWidget(self.dishes)
-        '''
-        while self.dishesAreaLayout.count():
-            child = self.dishesAreaLayout.takeAt(0)
-            if child.widget():
-                child.widget().deleteLater()
-        '''
-        # print(self.dishes.dishesList)
-        # self.dishesAreaLayout.addWidget(self.dishesArea)
 
     def layout_init(self):
         self.cafeNameLayOut.addWidget(self.cafeLabel)
@@ -91,49 +81,52 @@ class MainWindow(QWidget):
 
 
 class Dishes(QWidget):
-    def __init__(self):
+    def __init__(self, user_name: str):
         super(Dishes, self).__init__()
         self.dishesList = []
+        self.userName = user_name
         self.allLayout = QVBoxLayout()
         self.setLayout(self.allLayout)
 
-    def dishes_change(self, cafe_name: str, counter_name: str):
-        self.dishesList = diningCon.showCounterAllDish(cafe_name, counter_name)
-        if self.allLayout.count():
-            item_list = list(range(self.allLayout.count()))
+    def delete_all(self, thisLayout):
+        if thisLayout.count():
+            item_list = list(range(thisLayout.count()))
             item_list.reverse()  # 倒序删除，避免影响布局顺序
             for i in item_list:
-                item = self.allLayout.itemAt(i)
-                self.allLayout.removeItem(item)
+                item = thisLayout.itemAt(i)
+                thisLayout.removeItem(item)
                 if item.widget():
                     item.widget().deleteLater()
-        '''
-        while self.allLayout.count() > 0:
-            child = self.allLayout.takeAt(0)
-            child.deleteLater()
-            print('here')
-        print('suc1')
-        '''
+                else:
+                    self.delete_all(item)
+
+    def dishes_change(self, cafe_name: str, counter_name: str):
+        self.dishesList = diningCon.showCounterAllDish(cafe_name, counter_name)
+        self.delete_all(self.allLayout)
         temp_all_layout = QVBoxLayout()
         cnt = 0
         temp_layout = QHBoxLayout()
         for dish in self.dishesList:
-            dish_label = QLabel(dish)
-            temp_layout.addWidget(dish_label)
+            dish_item = Cuisine(self.userName, cafe_name, counter_name, dish)
+            temp_layout.addWidget(dish_item)
             cnt += 1
-            if cnt % 5 == 0:
+            if cnt % 6 == 0:
                 temp_all_layout.addLayout(temp_layout)
                 temp_layout = QHBoxLayout()
+        temp_all_layout.addLayout(temp_layout)
+        temp_all_layout.setAlignment(Qt.AlignCenter)
         self.allLayout.addLayout(temp_all_layout)
 
 
 class Cuisine(QWidget):
     def __init__(self, user_name: str, cafe_name: str, counter_name: str, name: str):
         super(Cuisine, self).__init__()
+        '''
         self.pic = QLabel(self)
         self.pic.setPixmap(QPixmap('image.jpg'))
         self.pic.setFixedSize(200, 100)
         self.pic.setScaledContents(True)
+        '''
         self.username = user_name
         self.name = QLabel(name)
         self.cafeName = cafe_name
@@ -156,13 +149,15 @@ class Cuisine(QWidget):
         self.bookButton.clicked.connect(lambda: self.like())
 
     def layout_init(self):
+        '''
         self.picLayout.addWidget(self.pic)
         self.picLayout.setAlignment(Qt.AlignCenter)
+        '''
         self.labelLayout.addWidget(self.name)
         self.labelLayout.setAlignment(Qt.AlignCenter)
         self.buttonLayout.addWidget(self.recordButton)
         self.buttonLayout.addWidget(self.bookButton)
-        self.allVLayout.addLayout(self.picLayout)
+        # self.allVLayout.addLayout(self.picLayout)
         self.allVLayout.addLayout(self.labelLayout)
         self.allVLayout.addLayout(self.buttonLayout)
 
@@ -378,19 +373,23 @@ class BookPart(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    '''
-    mainWindow = MainWindow('ycz')
+
+
+    mainWindow = MainWindow('mu')
     mainWindow.show()
-    '''
+    ''''''
     '''
     test = Cuisine('mu', '学一食堂', '一柜台', '宫保鸡丁')
     test.show()
     recordCon.print('mu')
-    
+    '''
+
+    '''
     test = RecordWindow('mu')
     test.show()
     '''
+    '''
     test = BookWindow('mu')
     test.show()
-
+    '''
     sys.exit(app.exec_())

@@ -29,6 +29,7 @@ class dining_user_con:
         name TEXT NOT NULL,
         counter_id INTEGER NOT NULL,
         number INTEGER NOT NULL,
+        img_path TEXT,
         FOREIGN KEY (counter_id) REFERENCES food_counter (id) ON DELETE CASCADE);
         ''')  # 食堂柜台的菜品表——dishes
 
@@ -43,8 +44,14 @@ class dining_user_con:
         '''学一食堂 一柜台 饺子'''
         with open('data_initial.txt', 'r', encoding='utf-8') as file:
             for line in file:
-                cafename, countername, dishname = line.strip().split(' ')
-                self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', (cafename,))
+                if len(line.strip().split(' ')) == 1:
+                    continue
+                imgpath = ""
+                if len(line.strip().split(' ')) == 4:
+                    cafename, countername, dishname, imgpath = line.strip().split(' ')
+                else:
+                    cafename, countername, dishname = line.strip().split(' ')
+                self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''',(cafename,))
                 cafe_id = self.cur.fetchall()
                 if cafe_id:
                     pass
@@ -54,22 +61,19 @@ class dining_user_con:
                     self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', (cafename,))
                     cafe_id = self.cur.fetchall()
 
-                self.cur.execute('''SELECT id FROM food_counter WHERE name = ? AND cafeteria_id = ?''',
-                                 (countername, cafe_id[0][0]))
+                self.cur.execute('''SELECT id FROM food_counter WHERE name = ? AND cafeteria_id = ?''', (countername, cafe_id[0][0]))
                 counter_id = self.cur.fetchall()
                 if counter_id:
                     pass
                 else:
-                    self.cur.execute('''INSERT INTO food_counter(name, cafeteria_id) VALUES(?,?)''',
-                                     (countername, cafe_id[0][0]))
+                    self.cur.execute('''INSERT INTO food_counter(name, cafeteria_id) VALUES(?,?)''',(countername,cafe_id[0][0]))
                     self.con.commit()
-                    self.cur.execute('''SELECT id FROM food_counter WHERE name = ? AND cafeteria_id = ?''',
-                                     (countername, cafe_id[0][0]))
+                    self.cur.execute('''SELECT id FROM food_counter WHERE name = ? AND cafeteria_id = ?''',(countername,cafe_id[0][0]))
                     counter_id = self.cur.fetchall()
 
-                self.cur.execute('''INSERT INTO dishes(name, counter_id, number) VALUES(?,?,?)''',
-                                 (dishname, counter_id[0][0], 0))
+                self.cur.execute('''INSERT INTO dishes(name, counter_id, number, img_path) VALUES(?,?,?,?)''', (dishname,counter_id[0][0],0,imgpath))
                 self.con.commit()
+
 
     def end(self):
         self.cur.close()
@@ -124,10 +128,11 @@ class dining_user_con:
         dish = self.cur.fetchall()
         ret = []
         for item in dish:
-            ret.append(item[1])
+            ret.append(item[1] + " " + item[4])
         return ret
 
-        '''返回结果：['麻辣香锅', '宫保鸡丁', '卤肉饭套餐']'''
+        '''返回结果：['牛肉卤粉 ./img/Xue1/counter0/niuroulufen.jpg', '饺子 ./img/Xue1/counter0/jiaozi.jpg']'''
+
 
     def showOneDish(self, cafename: str, countername: str, dishname: str) -> list:
         '''根据食堂、柜台、菜名返回指定的一道菜的信息'''
@@ -230,13 +235,12 @@ class dining_user_con:
                          (cafe_id[0], countername))
         counter_id = self.cur.fetchall()[0]
         self.cur.execute('''
-        INSERT INTO dishes(name, counter_id) VALUES (?, ?)
-        ''', (dishname, counter_id[0]))
+        INSERT INTO dishes(name, counter_id, number) VALUES (?, ?, ?)
+        ''', (dishname, counter_id[0], 0))
         self.con.commit()
 
     '''—————————————————必吃排行榜相关—————————————————————————————————————————————————'''
-
-    def increaseNumber(self, cafename: str, countername: str, dishname: str):
+    def increaseNumber(self, cafename:str, countername:str, dishname:str):
         '''用户吃过菜品后为次数+1（前端GUI不用调用！在addDish里即自动执行）'''
         self.cur.execute('''SELECT id FROM cafeteria WHERE name = ?''', (cafename,))
         cafe_id = self.cur.fetchall()[0]
@@ -245,7 +249,7 @@ class dining_user_con:
         counter_id = self.cur.fetchall()[0]
         self.cur.execute('''SELECT id FROM dishes WHERE counter_id = ? AND name = ?''', (counter_id[0], dishname))
         dish_id = self.cur.fetchall()[0]
-        self.cur.execute('''SELECT number FROM dishes WHERE id = ?''', (dish_id[0],))
+        self.cur.execute('''SELECT number FROM dishes WHERE id = ?''', (dish_id[0], ))
         num = self.cur.fetchall()[0][0]
         num = num + 1
         self.cur.execute('''UPDATE dishes SET number = ? WHERE id = ?''', (num, dish_id[0]))
@@ -264,6 +268,7 @@ class dining_user_con:
             cafename = self.cur.fetchall()[0]
             ret.append(item[1] + " " + countername + " " + cafename[0])
         return ret
+
 
     def showTop50DishRankingList(self):
         '''菜品排行榜展示前50——菜名 柜台名 食堂名'''
@@ -284,12 +289,15 @@ class dining_user_con:
         return ret
 
 
-'''# testcase
-con = dining_user_con("diningData.db")
-con.printAll()
-# print(con.showAllDishRankingList())
-con.end()
 
+# testcase
+'''con=dining_user_con("diningData.db")
+#con.insertDish('学一食堂','一柜台','炒鸡')
+con.printAll()
+print(con.showCounterAllDish('学一食堂','早餐柜台'))
+#print(con.showAllDishRankingList())
+con.end()'''
+'''
 print(con.showAllCafeName())
 print(con.showCafeAllCounterName('学一食堂'))
 print(con.showCounterAllDish('学二食堂', '一柜台')[0])
@@ -309,3 +317,4 @@ con.insertDish('学六食堂', '抽象柜台', '泔水')'''
 
 '''con.printAll()
 con.end()'''
+
