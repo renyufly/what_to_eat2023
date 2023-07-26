@@ -1,5 +1,4 @@
 from PyQt5.Qt import *
-import sys
 from diningDatabase import dining_user_con
 from userRecordDatabase import user_record_con
 
@@ -20,15 +19,23 @@ class MainWindow(QWidget):
         self.counterLabel = QLabel('请选择目标柜台')
         self.userLabel = QLabel('当前用户：' + self.userName)
         self.checkButton = QPushButton('确定')
+        self.likeCafeButton = QPushButton('收藏当前餐厅')
+        self.likeCounterButton = QPushButton('收藏当前柜台')
         self.logoutButton = QPushButton('退出')
         self.counterName = QComboBox(self)
         self.dishes = Dishes(self.userName)
         self.dishesArea = QScrollArea(self)
+        self.openRecordWindowButton = QPushButton('查看个人用餐记录')
+        self.openLikeWindowButton = QPushButton('查看个人收藏')
+        self.recordWindow = RecordWindow(self.userName, self)
+        self.bookWindow = BookWindow(self.userName, self)
 
         self.cafeNameLayOut = QVBoxLayout()
         self.counterNameLayOut = QVBoxLayout()
+        self.likeLayout = QVBoxLayout()
         self.selectLayout = QHBoxLayout()
         self.userLayout = QHBoxLayout()
+        self.recordAndLikeButtonLayout = QVBoxLayout()
         self.selectAndUserLayout = QHBoxLayout()
         self.dishesAreaLayout = QHBoxLayout()
         self.allLayout = QVBoxLayout()
@@ -58,12 +65,18 @@ class MainWindow(QWidget):
         self.cafeNameLayOut.addWidget(self.cafeName)
         self.counterNameLayOut.addWidget(self.counterLabel)
         self.counterNameLayOut.addWidget(self.counterName)
+        self.likeLayout.addWidget(self.likeCafeButton)
+        self.likeLayout.addWidget(self.likeCounterButton)
         self.selectLayout.addLayout(self.cafeNameLayOut)
         self.selectLayout.addLayout(self.counterNameLayOut)
         self.selectLayout.addWidget(self.checkButton)
         self.userLayout.addWidget(self.userLabel)
         self.userLayout.addWidget(self.logoutButton)
+        self.recordAndLikeButtonLayout.addWidget(self.openRecordWindowButton)
+        self.recordAndLikeButtonLayout.addWidget(self.openLikeWindowButton)
         self.selectAndUserLayout.addLayout(self.selectLayout)
+        self.selectAndUserLayout.addLayout(self.likeLayout)
+        self.selectAndUserLayout.addLayout(self.recordAndLikeButtonLayout)
         self.selectAndUserLayout.addLayout(self.userLayout)
         self.dishesAreaLayout.addWidget(self.dishesArea)
         self.allLayout.addLayout(self.selectAndUserLayout)
@@ -72,12 +85,40 @@ class MainWindow(QWidget):
 
     def button_init(self):
         self.logoutButton.clicked.connect(self.log_out)
-        self.checkButton.clicked.connect(lambda: self.change_dishes_func())
+        self.checkButton.clicked.connect(self.change_dishes_func)
+        self.likeCafeButton.clicked.connect(self.like_cafe)
+        self.likeCounterButton.clicked.connect(self.like_counter)
+        self.openRecordWindowButton.clicked.connect(self.open_record_window)
+        self.openLikeWindowButton.clicked.connect(self.open_book_window)
 
     def log_out(self):
-        choice = QMessageBox.question(self, '确认注销', '您确定要注销吗', QMessageBox.Yes | QMessageBox.No)
+        choice = QMessageBox.question(self, '确认退出', '您确定要退出吗', QMessageBox.Yes | QMessageBox.No)
         if choice == QMessageBox.Yes:
             self.close()
+
+    def open_record_window(self):
+        self.recordWindow = RecordWindow(self.userName, self)
+        self.close()
+        self.recordWindow.show()
+
+    def open_book_window(self):
+        self.bookWindow = BookWindow(self.userName, self)
+        self.close()
+        self.bookWindow.show()
+
+    def like_cafe(self):
+        print(self.userName, self.cafeName.currentText())
+        if not recordCon.addStarCafe(self.userName, self.cafeName.currentText()):
+            QMessageBox.information(self, '提示', '您已经收藏过该餐厅！')
+        else:
+            QMessageBox.information(self, '提示', '添加书签成功!')
+
+    def like_counter(self):
+        print(self.userName, self.cafeName.currentText(), self.counterName.currentText())
+        if not recordCon.addStarCounter(self.userName, self.cafeName.currentText(), self.counterName.currentText()):
+            QMessageBox.information(self, '提示', '您已经收藏过该柜台！')
+        else:
+            QMessageBox.information(self, '提示', '添加书签成功!')
 
 
 class Dishes(QWidget):
@@ -88,13 +129,13 @@ class Dishes(QWidget):
         self.allLayout = QVBoxLayout()
         self.setLayout(self.allLayout)
 
-    def delete_all(self, thisLayout):
-        if thisLayout.count():
-            item_list = list(range(thisLayout.count()))
+    def delete_all(self, this_layout):
+        if this_layout.count():
+            item_list = list(range(this_layout.count()))
             item_list.reverse()  # 倒序删除，避免影响布局顺序
             for i in item_list:
-                item = thisLayout.itemAt(i)
-                thisLayout.removeItem(item)
+                item = this_layout.itemAt(i)
+                this_layout.removeItem(item)
                 if item.widget():
                     item.widget().deleteLater()
                 else:
@@ -121,6 +162,7 @@ class Dishes(QWidget):
 class Cuisine(QWidget):
     def __init__(self, user_name: str, cafe_name: str, counter_name: str, name: str):
         super(Cuisine, self).__init__()
+        pic_and_name = name.split(" ")
         '''
         self.pic = QLabel(self)
         self.pic.setPixmap(QPixmap('image.jpg'))
@@ -128,7 +170,7 @@ class Cuisine(QWidget):
         self.pic.setScaledContents(True)
         '''
         self.username = user_name
-        self.name = QLabel(name)
+        self.name = QLabel(pic_and_name[0])
         self.cafeName = cafe_name
         self.counterName = counter_name
         self.setFixedSize(215, 200)
@@ -145,8 +187,8 @@ class Cuisine(QWidget):
         self.layout_init()
 
     def button_init(self):
-        self.recordButton.clicked.connect(lambda: self.record())
-        self.bookButton.clicked.connect(lambda: self.like())
+        self.recordButton.clicked.connect(self.record)
+        self.bookButton.clicked.connect(self.like)
 
     def layout_init(self):
         '''
@@ -171,6 +213,8 @@ class Cuisine(QWidget):
         if not recordCon.addStarDish(self.username, self.cafeName,
                                      self.counterName, self.name.text()):
             QMessageBox.information(self, '提示', '您已经收藏过该菜品！')
+        else:
+            QMessageBox.information(self, '提示', '收藏成功！')
 
 
 class RecordHelp(QDialog):
@@ -241,21 +285,35 @@ class RecordHelp(QDialog):
 
 
 class RecordWindow(QWidget):
-    def __init__(self, user_name: str):
+    def __init__(self, user_name: str, main_window: MainWindow):
         super(RecordWindow, self).__init__()
         self.user_name = user_name
         self.setFixedSize(1500, 800)
         self.setWindowTitle('个人记录界面')
+        self.mainWindow = main_window
+
         self.userLabel = QLabel('当前用户: ' + self.user_name, self)
         font = QFont('宋体', 22)
         self.userLabel.setFont(font)
         self.userLabel.setFixedSize(500, 50)
+        self.backButton = QPushButton('返回主界面')
+        self.backButton.setFixedSize(500, 50)
+        self.backButton.clicked.connect(self.back_to_main_window)
+
         self.recordPart = RecordPart(self.user_name)
         self.recordPart.setFixedSize(1500, 750)
+
+        self.userAndButtonLayout = QHBoxLayout()
+        self.userAndButtonLayout.addWidget(self.userLabel)
+        self.userAndButtonLayout.addWidget(self.backButton)
         self.allLayout = QVBoxLayout()
-        self.allLayout.addWidget(self.userLabel)
+        self.allLayout.addLayout(self.userAndButtonLayout)
         self.allLayout.addWidget(self.recordPart)
         self.setLayout(self.allLayout)
+
+    def back_to_main_window(self):
+        self.close()
+        self.mainWindow.show()
 
 
 class RecordPart(QWidget):
@@ -263,79 +321,113 @@ class RecordPart(QWidget):
         super(RecordPart, self).__init__()
         self.user_name = user_name
         self.recordList = recordCon.showAllDishName(self.user_name)
-        print(self.recordList)
         self.allLayout = QVBoxLayout()
         self.show_list()
 
     def show_list(self):
+        self.delete_all(self.allLayout)
         self.recordList = recordCon.showAllDishName(self.user_name)
-        self.allLayout = QVBoxLayout()
         for dish in self.recordList:
-            temp_layout = QHBoxLayout()
-            dish_label = QLabel(dish)
-            delete_button = QPushButton('删除本条记录')
-            modify_button = QPushButton('更改本条记录')
-            delete_button.clicked.connect(lambda: self.delete_dish(self.user_name, dish))
-            # modify_button.clicked.connect()
-            temp_layout.addWidget(dish_label)
-            temp_layout.addWidget(modify_button)
-            temp_layout.addWidget(delete_button)
-            self.allLayout.addLayout(temp_layout)
+            record = Record(self, dish, self.user_name)
+            self.allLayout.addWidget(record)
         self.setLayout(self.allLayout)
 
-    def delete_dish(self, user_name: str, dish_inform: str):
-        inform_list = dish_inform.split(" ")
-        time = inform_list[0]
-        dish_type = inform_list[1]
-        dish_name = inform_list[2]
-        dish_counter = inform_list[3]
-        dish_cafe = inform_list[4]
-        recordCon.deleteDish(user_name, dish_name, dish_counter, dish_cafe, time, dish_type)
-        self.show_list()
+    def delete_all(self, this_layout):
+        if this_layout.count():
+            item_list = list(range(this_layout.count()))
+            item_list.reverse()  # 倒序删除，避免影响布局顺序
+            for i in item_list:
+                item = this_layout.itemAt(i)
+                this_layout.removeItem(item)
+                if item.widget():
+                    item.widget().deleteLater()
+                else:
+                    self.delete_all(item)
+
+
+class Record(QWidget):
+    def __init__(self, father: RecordPart, dish_name: str, user_name: str):
+        super(Record, self).__init__()
+        self.father = father
+        self.userName = user_name
+
+        self.dish_label = QLabel(dish_name)
+        self.delete_button = QPushButton('删除本条记录')
+        self.delete_button.clicked.connect(self.delete_dish)
+
+        self.layout = QHBoxLayout()
+        self.layout.addWidget(self.dish_label)
+        self.layout.addWidget(self.delete_button)
+        self.setLayout(self.layout)
+
+    def delete_dish(self):
+        choice = QMessageBox.question(self, '确认删除', '您确定要删除这条记录吗', QMessageBox.Yes | QMessageBox.No)
+        if choice == QMessageBox.Yes:
+            inform_list = self.dish_label.text().split(" ")
+            time = inform_list[0]
+            dish_type = inform_list[1]
+            dish_name = inform_list[2]
+            dish_counter = inform_list[3]
+            dish_cafe = inform_list[4]
+            recordCon.deleteDish(self.userName, dish_name, dish_counter, dish_cafe, time, dish_type)
+            self.father.delete_all(self.father.allLayout)
+            self.father.show_list()
 
 
 class BookWindow(QWidget):
-    def __init__(self, user_name: str):
+    def __init__(self, user_name: str, main_window: MainWindow):
         super(BookWindow, self).__init__()
         self.user_name = user_name
         self.setFixedSize(1500, 800)
         self.setWindowTitle('个人收藏界面')
+        self.mainWindow = main_window
 
         self.userLabel = QLabel('当前用户: ' + self.user_name, self)
         font = QFont('宋体', 22)
         self.userLabel.setFont(font)
         self.userLabel.setFixedSize(500, 50)
+        self.backButton = QPushButton('返回主界面')
+        self.backButton.setFixedSize(500, 50)
+        self.backButton.clicked.connect(self.back_to_main_window)
+        self.userAndBackLayout = QHBoxLayout()
+        self.userAndBackLayout.addWidget(self.userLabel)
+        self.userAndBackLayout.addWidget(self.backButton)
 
         self.cafeSelectButton = QPushButton('查看收藏的餐厅')
-        self.cafeSelectButton.clicked.connect(lambda: self.cafe_button_click())
+        self.cafeSelectButton.setFixedSize(300, 50)
+        self.cafeSelectButton.clicked.connect(self.cafe_button_click)
         self.counterSelectButton = QPushButton('查看收藏的柜台')
-        self.cafeSelectButton.clicked.connect(lambda: self.counter_button_click())
+        self.counterSelectButton.setFixedSize(300, 50)
+        self.counterSelectButton.clicked.connect(self.counter_button_click)
         self.dishSelectButton = QPushButton('查看收藏的菜肴')
-        self.dishSelectButton.clicked.connect(lambda: self.dish_button_click())
+        self.dishSelectButton.setFixedSize(300, 50)
+        self.dishSelectButton.clicked.connect(self.dish_button_click)
         self.buttonLayout = QHBoxLayout()
         self.buttonLayout.addWidget(self.cafeSelectButton)
         self.buttonLayout.addWidget(self.counterSelectButton)
         self.buttonLayout.addWidget(self.dishSelectButton)
 
         self.bookPart = BookPart(self.user_name)
-        self.bookPart.setFixedSize(1500, 750)
+        self.bookPart.setFixedSize(1500, 500)
+
         self.allLayout = QVBoxLayout()
-        self.allLayout.addWidget(self.userLabel)
+        self.allLayout.addLayout(self.userAndBackLayout)
         self.allLayout.addLayout(self.buttonLayout)
         self.allLayout.addWidget(self.bookPart)
         self.setLayout(self.allLayout)
 
+    def back_to_main_window(self):
+        self.close()
+        self.mainWindow.show()
+
     def cafe_button_click(self):
         self.bookPart.show_books(1)
-        self.setLayout(self.allLayout)
 
     def counter_button_click(self):
         self.bookPart.show_books(2)
-        self.setLayout(self.allLayout)
 
     def dish_button_click(self):
         self.bookPart.show_books(3)
-        self.setLayout(self.allLayout)
 
 
 class BookPart(QWidget):
@@ -345,51 +437,77 @@ class BookPart(QWidget):
         self.allLayout = QVBoxLayout()
 
     def show_books(self, search_type: int):
+        self.delete_all(self.allLayout)
         if search_type == 1:
             self.bookList = recordCon.showStarAllCafe(self.userName)
             self.tipLabel = QLabel('您目前收藏的餐厅有：')
         elif search_type == 2:
             self.bookList = recordCon.showStarAllCounter(self.userName)
-            self.tipLabel = QLabel('您目前收藏的餐厅有：')
+            self.tipLabel = QLabel('您目前收藏的柜台有：')
         else:
             self.bookList = recordCon.showStarAllDish(self.userName)
             self.tipLabel = QLabel('您目前收藏的菜肴有：')
-        self.allLayout = QVBoxLayout()
         self.allLayout.addWidget(self.tipLabel)
         print(self.bookList)
         for item in self.bookList:
-            temp_layout = QHBoxLayout()
-            item_label = QLabel(item)
-            delete_button = QPushButton('取消收藏')
-            delete_button.clicked.connect(lambda: self.delete_star(item))
-            temp_layout.addWidget(item_label)
-            temp_layout.addWidget(delete_button)
-            self.allLayout.addLayout(temp_layout)
+            like = Like(self, item, self.userName, search_type)
+            self.allLayout.addWidget(like)
         self.setLayout(self.allLayout)
 
-    def delete_star(self, star_item: str):
-        recordCon.deleteStar(self.userName, star_item)
+    def delete_all(self, this_layout):
+        if this_layout.count():
+            item_list = list(range(this_layout.count()))
+            item_list.reverse()  # 倒序删除，避免影响布局顺序
+            for i in item_list:
+                item = this_layout.itemAt(i)
+                this_layout.removeItem(item)
+                if item.widget():
+                    item.widget().deleteLater()
+                else:
+                    self.delete_all(item)
 
 
+class Like(QWidget):
+    def __init__(self, father: BookPart, star_item: str, user_name: str, search_type: int):
+        super(Like, self).__init__()
+        self.father = father
+        self.userName = user_name
+        self.name = star_item
+        self.searchType = search_type
+
+        self.item_label = QLabel(star_item)
+        self.delete_button = QPushButton('取消收藏')
+        self.delete_button.clicked.connect(self.delete_star)
+
+        self.layout = QHBoxLayout()
+        self.layout.addWidget(self.item_label)
+        self.layout.addWidget(self.delete_button)
+        self.setLayout(self.layout)
+
+    def delete_star(self):
+        choice = QMessageBox.question(self, '确认删除', '您确定要删除该收藏吗', QMessageBox.Yes | QMessageBox.No)
+        if choice == QMessageBox.Yes:
+            recordCon.deleteStar(self.userName, self.name)
+            self.father.delete_all(self.father.allLayout)
+            self.father.show_books(self.searchType)
+
+
+'''
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
-
     mainWindow = MainWindow('mu')
     mainWindow.show()
-    ''''''
-    '''
+
     test = Cuisine('mu', '学一食堂', '一柜台', '宫保鸡丁')
     test.show()
     recordCon.print('mu')
-    '''
 
-    '''
     test = RecordWindow('mu')
     test.show()
-    '''
-    '''
+
     test = BookWindow('mu')
     test.show()
-    '''
+
     sys.exit(app.exec_())
+'''
