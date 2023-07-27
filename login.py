@@ -4,8 +4,8 @@ from database import user_con
 from MainWindow import MainWindow
 from userRecordDatabase import user_record_con
 
-userCon = user_con('data.db')
-userRecordCon = user_record_con('userCon.db')
+userCon = user_con("data.db")
+userRecordCon = user_record_con("userCon.db")
 
 
 # 登录界面
@@ -13,15 +13,15 @@ class LoginWindow(QWidget):
     def __init__(self):
         super(LoginWindow, self).__init__()
         self.resize(300, 100)
-        self.setWindowTitle('Login Window')
+        self.setWindowTitle("Login Window")
 
         # 实例化标签，输入框，按钮等内容
-        self.userLabel = QLabel('用户名:', self)
-        self.pwdLabel = QLabel('密码:', self)
+        self.userLabel = QLabel("用户名:", self)
+        self.pwdLabel = QLabel("密码:", self)
         self.userLine = QLineEdit(self)
         self.pwdLine = QLineEdit(self)
-        self.loginButton = QPushButton('登录', self)
-        self.signinButton = QPushButton('注册', self)
+        self.loginButton = QPushButton("登录", self)
+        self.signinButton = QPushButton("注册", self)
 
         # 摆放框架的实例化
         self.userAndPwdLayout = QGridLayout()  # 用户名与密码区的摆放
@@ -35,8 +35,8 @@ class LoginWindow(QWidget):
 
     # 登录界面用户名与输入框部分的初始化
     def lineedit_init(self):
-        self.userLine.setPlaceholderText('请输入您的用户名')
-        self.pwdLine.setPlaceholderText('请输入您的密码')
+        self.userLine.setPlaceholderText("请输入您的用户名")
+        self.pwdLine.setPlaceholderText("请输入您的密码")
         self.pwdLine.setEchoMode(QLineEdit.Password)
         self.userLine.textChanged.connect(self.check_input_func)
         self.pwdLine.textChanged.connect(self.check_input_func)
@@ -70,12 +70,12 @@ class LoginWindow(QWidget):
     # 登录，验证用户名与密码的匹配
     def check_login_func(self):
         if userCon.login(self.userLine.text(), self.pwdLine.text()):
-            QMessageBox.information(self, 'Information', '登陆成功！')
+            QMessageBox.information(self, "Information", "登陆成功！")
             self.close()
             self.mainWindow = MainWindow(self.userLine.text())
             self.mainWindow.show()
         else:
-            QMessageBox.critical(self, 'Wrong', '用户名或密码错误')
+            QMessageBox.critical(self, "Wrong", "用户名或密码错误")
             self.pwdLine.clear()
 
     # 注册界面的唤出
@@ -87,15 +87,15 @@ class LoginWindow(QWidget):
 class SigninPage(QDialog):
     def __init__(self):
         super(SigninPage, self).__init__()
-        self.setWindowTitle('注册')
+        self.setWindowTitle("注册")
 
-        self.signinUserLabel = QLabel('新的用户名:', self)
-        self.signinPwdLabel = QLabel('密码:', self)
-        self.signinPwd2Label = QLabel('重复密码:', self)
+        self.signinUserLabel = QLabel("新的用户名:", self)
+        self.signinPwdLabel = QLabel("密码:", self)
+        self.signinPwd2Label = QLabel("重复密码:", self)
         self.signinUserLine = QLineEdit(self)
         self.signinPwdLine = QLineEdit(self)
         self.signinPwd2Line = QLineEdit(self)
-        self.signinButton = QPushButton('注册', self)
+        self.signinButton = QPushButton("注册", self)
 
         self.userHLayout = QHBoxLayout()
         self.pwdHLayout = QHBoxLayout()
@@ -138,7 +138,11 @@ class SigninPage(QDialog):
 
     # 检测三个输入框内是否含有内容
     def check_input_func(self):
-        if self.signinUserLine.text() and self.signinPwdLine.text() and self.signinPwd2Line.text():
+        if (
+                self.signinUserLine.text()
+                and self.signinPwdLine.text()
+                and self.signinPwd2Line.text()
+        ):
             self.signinButton.setEnabled(True)
         else:
             self.signinButton.setEnabled(False)
@@ -146,24 +150,22 @@ class SigninPage(QDialog):
     # 完成注册功能，检查注册时两次输入的密码是否保持一致，并启动主界面
     def signin_func(self):
         if self.signinPwdLine.text() != self.signinPwd2Line.text():
-            QMessageBox.critical(self, '错误', '两次输入的密码不一致！')
+            QMessageBox.critical(self, "错误", "两次输入的密码不一致！")
         else:
             if userCon.register(self.signinUserLine.text(), self.signinPwdLine.text()):
                 userRecordCon.createUserTable(self.signinUserLine.text())
                 userRecordCon.createUserStar(self.signinUserLine.text())
-                QMessageBox.information(self, '提示', '注册成功，请重新登陆')
+                QMessageBox.information(self, "提示", "注册成功，请重新登陆")
                 self.close()
             else:
-                QMessageBox.critical(self, '错误', '注册失败')
+                QMessageBox.critical(self, "错误", "注册失败")
                 self.signinUserLine.clear()
                 self.signinPwdLine.clear()
                 self.signinPwd2Line.clear()
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     loginWindow = LoginWindow()
     loginWindow.show()
     sys.exit(app.exec_())
-
