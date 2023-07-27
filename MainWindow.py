@@ -24,6 +24,8 @@ class MainWindow(QWidget):
         self.counterName = QComboBox(self)
         self.dishes = Dishes(self.userName)
         self.dishesArea = QScrollArea(self)
+        self.dishesArea.setWidgetResizable(True)
+        self.dishesArea.setMinimumSize(1300, 600)
         self.openRecordWindowButton = QPushButton("查看个人用餐记录")
         self.openLikeWindowButton = QPushButton("查看个人收藏")
         self.recordWindow = RecordWindow(self.userName, self)
@@ -168,7 +170,7 @@ class Dishes(QWidget):
                 temp_layout = QHBoxLayout()
         temp_layout.setAlignment(Qt.AlignLeft)
         temp_all_layout.addLayout(temp_layout)
-        temp_all_layout.setAlignment(Qt.AlignCenter)
+        temp_all_layout.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         self.allLayout.addLayout(temp_all_layout)
 
 
