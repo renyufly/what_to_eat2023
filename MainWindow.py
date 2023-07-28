@@ -17,12 +17,12 @@ class MainWindow(QWidget):
         self.cafeName = QComboBox(self)
         self.counterLabel = QLabel("请选择目标柜台")
         self.userLabel = QLabel("当前用户：" + self.userName)
-        font = QFont('宋体', 16)
+        font = QFont("宋体", 16)
         self.userLabel.setFont(font)
         self.checkButton = QPushButton("确定")
         self.likeCafeButton = QPushButton("收藏当前餐厅")
         self.likeCounterButton = QPushButton("收藏当前柜台")
-        self.checkTop50Button = QPushButton('必吃排行榜')
+        self.checkTop50Button = QPushButton("必吃排行榜")
         self.logoutButton = QPushButton("退出")
         self.counterName = QComboBox(self)
         self.dishes = Dishes(self.userName)
@@ -139,7 +139,7 @@ class MainWindow(QWidget):
             self.userName, self.cafeName.currentText(), self.counterName.currentText()
         )
         if not recordCon.addStarCounter(
-                self.userName, self.cafeName.currentText(), self.counterName.currentText()
+            self.userName, self.cafeName.currentText(), self.counterName.currentText()
         ):
             QMessageBox.information(self, "提示", "您已经收藏过该柜台！")
         else:
@@ -197,7 +197,7 @@ class Cuisine(QWidget):
 
         self.username = user_name
         self.name = QLabel(pic_and_name[0])
-        font = QFont('宋体', 14)
+        font = QFont("宋体", 14)
         self.name.setFont(font)
         self.cafeName = cafe_name
         self.counterName = counter_name
@@ -246,7 +246,7 @@ class Cuisine(QWidget):
 
     def like(self):
         if not recordCon.addStarDish(
-                self.username, self.cafeName, self.counterName, self.name.text()
+            self.username, self.cafeName, self.counterName, self.name.text()
         ):
             QMessageBox.information(self, "提示", "您已经收藏过该菜品！")
         else:
@@ -255,7 +255,7 @@ class Cuisine(QWidget):
 
 class RecordHelp(QDialog):
     def __init__(
-            self, user_name: str, dish_name: str, counter_name: str, cafe_name: str
+        self, user_name: str, dish_name: str, counter_name: str, cafe_name: str
     ):
         super(RecordHelp, self).__init__()
         self.setWindowTitle("添加记录")
@@ -310,13 +310,13 @@ class RecordHelp(QDialog):
 
     def add_record(self):
         if not recordCon.addDish(
-                self.userName,
-                self.dishName,
-                self.counterName,
-                self.cafeName,
-                self.timeLine.text(),
-                self.dishType.currentText(),
-                diningCon,
+            self.userName,
+            self.dishName,
+            self.counterName,
+            self.cafeName,
+            self.timeLine.text(),
+            self.dishType.currentText(),
+            diningCon,
         ):
             QMessageBox.critical(self, "错误", "错误的日期格式")
             self.timeLine.clear()
@@ -402,7 +402,7 @@ class Record(QWidget):
 
         self.dish_label = QLabel(dish_name)
         self.dish_label.setMinimumSize(300, 75)
-        font = QFont('宋体', 20)
+        font = QFont("宋体", 20)
         self.dish_label.setFont(font)
         self.delete_button = QPushButton("删除本条记录")
         self.delete_button.clicked.connect(self.delete_dish)
@@ -536,7 +536,7 @@ class BookPart(QWidget):
 
 class Like(QWidget):
     def __init__(
-            self, father: BookPart, star_item: str, user_name: str, search_type: int
+        self, father: BookPart, star_item: str, user_name: str, search_type: int
     ):
         super(Like, self).__init__()
         self.father = father
@@ -547,7 +547,7 @@ class Like(QWidget):
 
         self.item_label = QLabel(star_item)
         self.item_label.setMinimumSize(300, 75)
-        font = QFont('宋体', 20)
+        font = QFont("宋体", 20)
         self.item_label.setFont(font)
         self.delete_button = QPushButton("取消收藏")
         self.delete_button.clicked.connect(self.delete_star)
@@ -571,13 +571,13 @@ class Like(QWidget):
 class RankListWindow(QWidget):
     def __init__(self, user_name: str, father: MainWindow):
         super(RankListWindow, self).__init__()
-        self.setWindowTitle('校园必吃排行榜')
+        self.setWindowTitle("校园必吃排行榜")
         self.setFixedSize(1500, 800)
         self.userName = user_name
         self.fatherWindow = father
 
-        self.tipLabel = QLabel('校园菜品必吃排行榜Top50')
-        font = QFont('华文行楷', 24)
+        self.tipLabel = QLabel("校园菜品必吃排行榜Top50")
+        font = QFont("华文行楷", 24)
         self.tipLabel.setFont(font)
         self.tipLabel.setFixedSize(500, 50)
         self.backButton = QPushButton("返回主界面")
@@ -641,7 +641,7 @@ class Rank(QWidget):
 
         self.dishLabel = QLabel(dish_name)
         self.dishLabel.setMinimumSize(300, 75)
-        font = QFont('宋体', 20)
+        font = QFont("宋体", 20)
         self.dishLabel.setFont(font)
         self.likeButton = QPushButton("收藏该菜品")
         self.likeButton.clicked.connect(self.like_dish)
@@ -658,7 +658,7 @@ class Rank(QWidget):
         self.counterName = temp_list[1]
         self.cafeName = temp_list[2]
         if not recordCon.addStarDish(
-                self.userName, self.cafeName, self.counterName, self.dishName
+            self.userName, self.cafeName, self.counterName, self.dishName
         ):
             QMessageBox.information(self, "提示", "您已经收藏过该菜品！")
         else:
