@@ -13,7 +13,7 @@ class LoginWindow(QWidget):
     def __init__(self):
         super(LoginWindow, self).__init__()
         self.resize(300, 100)
-        self.setWindowTitle("Login Window")
+        self.setWindowTitle("登录")
 
         # 实例化标签，输入框，按钮等内容
         self.userLabel = QLabel("用户名:", self)
@@ -110,6 +110,8 @@ class SigninPage(QDialog):
     def lineedit_init(self):
         self.signinPwdLine.setEchoMode(QLineEdit.Password)
         self.signinPwd2Line.setEchoMode(QLineEdit.Password)
+        self.signinPwdLine.setPlaceholderText("密码长度不少于6位，不多于32位")
+        self.signinPwd2Line.setPlaceholderText("请重复输入上述密码")
 
         self.signinUserLine.textChanged.connect(self.check_input_func)
         self.signinPwdLine.textChanged.connect(self.check_input_func)
@@ -152,13 +154,22 @@ class SigninPage(QDialog):
         if self.signinPwdLine.text() != self.signinPwd2Line.text():
             QMessageBox.critical(self, "错误", "两次输入的密码不一致！")
         else:
-            if userCon.register(self.signinUserLine.text(), self.signinPwdLine.text()):
+            res = userCon.register(self.signinUserLine.text(), self.signinPwdLine.text())
+            if res == 0:
                 userRecordCon.createUserTable(self.signinUserLine.text())
                 userRecordCon.createUserStar(self.signinUserLine.text())
                 QMessageBox.information(self, "提示", "注册成功，请重新登陆")
                 self.close()
+                self.signinUserLine.clear()
+                self.signinPwdLine.clear()
+                self.signinPwd2Line.clear()
+            elif res == 1:
+                QMessageBox.critical(self, "错误", "密码长度不符合要求！")
+                self.signinUserLine.clear()
+                self.signinPwdLine.clear()
+                self.signinPwd2Line.clear()
             else:
-                QMessageBox.critical(self, "错误", "注册失败")
+                QMessageBox.critical(self, "错误", "用户名已存在")
                 self.signinUserLine.clear()
                 self.signinPwdLine.clear()
                 self.signinPwd2Line.clear()

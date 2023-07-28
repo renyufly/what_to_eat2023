@@ -1,7 +1,11 @@
 from PyQt5.Qt import *
 from diningDatabase import dining_user_con
 from userRecordDatabase import user_record_con
+from database import user_con
+import sys
+import datetime
 
+userInformDataBase = user_con("data.db")
 diningCon = dining_user_con("diningData.db")
 recordCon = user_record_con("userCon.db")
 
@@ -128,16 +132,12 @@ class MainWindow(QWidget):
         self.rankListWindow.show()
 
     def like_cafe(self):
-        print(self.userName, self.cafeName.currentText())
         if not recordCon.addStarCafe(self.userName, self.cafeName.currentText()):
             QMessageBox.information(self, "提示", "您已经收藏过该餐厅！")
         else:
             QMessageBox.information(self, "提示", "添加书签成功!")
 
     def like_counter(self):
-        print(
-            self.userName, self.cafeName.currentText(), self.counterName.currentText()
-        )
         if not recordCon.addStarCounter(
                 self.userName, self.cafeName.currentText(), self.counterName.currentText()
         ):
@@ -220,6 +220,7 @@ class Cuisine(QWidget):
     def button_init(self):
         self.recordButton.clicked.connect(self.record)
         self.bookButton.clicked.connect(self.like)
+        self.addCommentButton.clicked.connect(self.add_comment)
 
     def layout_init(self):
         self.picLayout.addWidget(self.pic)
@@ -251,6 +252,10 @@ class Cuisine(QWidget):
             QMessageBox.information(self, "提示", "您已经收藏过该菜品！")
         else:
             QMessageBox.information(self, "提示", "收藏成功！")
+
+    def add_comment(self):
+        self.commentWindow = CommentHelp(self.username, self.name.text())
+        self.commentWindow.show()
 
 
 class RecordHelp(QDialog):
@@ -325,6 +330,54 @@ class RecordHelp(QDialog):
 
     def cancel(self):
         self.timeLine.clear()
+        self.close()
+
+
+class CommentHelp(QDialog):
+    def __init__(self, user_name: str, dish_name: str):
+        super(CommentHelp, self).__init__()
+        self.setWindowTitle("发表评论")
+        self.setFixedSize(800, 300)
+        self.userName = user_name
+        self.dishName = dish_name
+
+        self.tipLabel = QLabel("请留下您对这道菜的评论:")
+        font = QFont("宋体", 14)
+        self.tipLabel.setFont(font)
+        self.commentPart = QTextEdit()
+        self.commentPart.textChanged.connect(self.check_input_func)
+        self.confirmButton = QPushButton("确认发表")
+        self.cancelButton = QPushButton("取消")
+        self.confirmButton.clicked.connect(self.add_comment)
+        self.confirmButton.setEnabled(False)
+        self.cancelButton.clicked.connect(self.cancel)
+
+        self.buttonLayout = QHBoxLayout()
+        self.buttonLayout.addWidget(self.confirmButton)
+        self.buttonLayout.addWidget(self.cancelButton)
+        self.allLayout = QVBoxLayout()
+        self.allLayout.addWidget(self.tipLabel)
+        self.allLayout.addWidget(self.commentPart)
+        self.allLayout.addLayout(self.buttonLayout)
+        self.setLayout(self.allLayout)
+
+    def check_input_func(self):
+        if self.commentPart.toPlainText() == "" or self.commentPart.toPlainText().isspace():
+            self.confirmButton.setEnabled(False)
+        else:
+            self.confirmButton.setEnabled(True)
+
+    def add_comment(self):
+        now_time = datetime.datetime.now().strftime('%Y-%m-%d')
+        if not userInformDataBase.comment_dish(self.userName, self.dishName
+                , self.commentPart.toPlainText(), now_time):
+            QMessageBox.critical(self, "错误", "用户不存在！")
+        else:
+            QMessageBox.information(self, "提示", "评论成功！")
+            self.close()
+
+    def cancel(self):
+        self.commentPart.clear()
         self.close()
 
 
@@ -469,7 +522,7 @@ class BookWindow(QWidget):
         self.buttonLayout.addWidget(self.counterSelectButton)
         self.buttonLayout.addWidget(self.dishSelectButton)
 
-        self.bookPart = BookPart(self.user_name)
+        self.bookPart = BookPart(self.user_name, self.mainWindow)
         self.bookArea = QScrollArea(self)
         self.bookArea.setWidget(self.bookPart)
         self.bookArea.setWidgetResizable(True)
@@ -496,10 +549,11 @@ class BookWindow(QWidget):
 
 
 class BookPart(QWidget):
-    def __init__(self, user_name: str):
+    def __init__(self, user_name: str, main_window: MainWindow):
         super(BookPart, self).__init__()
         self.userName = user_name
         self.allLayout = QVBoxLayout()
+        self.mainWindow = main_window
 
     def show_books(self, search_type: int):
         self.delete_all(self.allLayout)
@@ -516,7 +570,7 @@ class BookPart(QWidget):
         self.tipLabel.setFont(font)
         self.allLayout.addWidget(self.tipLabel)
         for item in self.bookList:
-            like = Like(self, item, self.userName, search_type)
+            like = Like(self.mainWindow, self, item, self.userName, search_type)
             self.allLayout.addWidget(like)
         self.allLayout.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         self.setLayout(self.allLayout)
@@ -536,14 +590,15 @@ class BookPart(QWidget):
 
 class Like(QWidget):
     def __init__(
-            self, father: BookPart, star_item: str, user_name: str, search_type: int
+            self, main_window: MainWindow, father: BookPart, star_item: str, user_name: str, search_type: int
     ):
         super(Like, self).__init__()
+        self.mainWindow = main_window
         self.father = father
         self.userName = user_name
         self.name = star_item
         self.searchType = search_type
-        self.setFixedSize(1200, 75)
+        self.setFixedSize(1250, 75)
 
         self.item_label = QLabel(star_item)
         self.item_label.setMinimumSize(300, 75)
@@ -552,10 +607,14 @@ class Like(QWidget):
         self.delete_button = QPushButton("取消收藏")
         self.delete_button.clicked.connect(self.delete_star)
         self.delete_button.setFixedSize(100, 50)
+        self.jump_button = QPushButton("跳转")
+        self.jump_button.setFixedSize(100, 50)
+        self.jump_button.clicked.connect(self.jump)
 
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.item_label)
         self.layout.addWidget(self.delete_button)
+        self.layout.addWidget(self.jump_button)
         self.setLayout(self.layout)
 
     def delete_star(self):
@@ -566,6 +625,27 @@ class Like(QWidget):
             recordCon.deleteStar(self.userName, self.name)
             self.father.delete_all(self.father.allLayout)
             self.father.show_books(self.searchType)
+
+    def jump(self):
+        if self.searchType == 2 or self.searchType == 3:
+            temp_list = self.name.split(" ")
+            cafe_name = temp_list[0]
+            counter_name = temp_list[1]
+            self.mainWindow.dishes.dishes_change(
+                cafe_name, counter_name
+            )
+            self.mainWindow.dishesArea.setWidget(self.mainWindow.dishes)
+            self.mainWindow.show()
+        else:
+            temp_list = self.name.split(" ")
+            cafe_name = temp_list[0]
+            counter_list = diningCon.showCafeAllCounterName(cafe_name)
+            counter_name = counter_list[0]
+            self.mainWindow.dishes.dishes_change(
+                cafe_name, counter_name
+            )
+            self.mainWindow.dishesArea.setWidget(self.mainWindow.dishes)
+            self.mainWindow.show()
 
 
 class RankListWindow(QWidget):
@@ -613,7 +693,6 @@ class RankList(QWidget):
     def show_list(self):
         self.delete_all(self.allLayout)
         self.rankList = diningCon.showTop50DishRankingList()
-        print(self.rankList)
         for dish in self.rankList:
             rank = Rank(dish, self.userName)
             self.allLayout.addWidget(rank)
@@ -663,24 +742,3 @@ class Rank(QWidget):
             QMessageBox.information(self, "提示", "您已经收藏过该菜品！")
         else:
             QMessageBox.information(self, "提示", "收藏成功！")
-
-
-"""
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-
-    mainWindow = MainWindow('mu')
-    mainWindow.show()
-
-    test = Cuisine('mu', '学一食堂', '一柜台', '宫保鸡丁')
-    test.show()
-    recordCon.print('mu')
-
-    test = RecordWindow('mu')
-    test.show()
-
-    test = BookWindow('mu')
-    test.show()
-
-    sys.exit(app.exec_())
-"""
