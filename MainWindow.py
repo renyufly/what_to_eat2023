@@ -2,7 +2,6 @@ from PyQt5.Qt import *
 from diningDatabase import dining_user_con
 from userRecordDatabase import user_record_con
 from database import user_con
-import sys
 import datetime
 
 userInformDataBase = user_con("data.db")
@@ -230,6 +229,7 @@ class Cuisine(QWidget):
         self.recordButton.clicked.connect(self.record)
         self.bookButton.clicked.connect(self.like)
         self.addCommentButton.clicked.connect(self.add_comment)
+        self.lookCommentButton.clicked.connect(self.check_comment)
 
     def layout_init(self):
         self.picLayout.addWidget(self.pic)
@@ -265,6 +265,10 @@ class Cuisine(QWidget):
     def add_comment(self):
         self.commentWindow = CommentHelp(self.username, self.name.text())
         self.commentWindow.show()
+
+    def check_comment(self):
+        self.dishCommentWindow = CommentWindow(self.name.text())
+        self.dishCommentWindow.show()
 
 
 class RecordHelp(QDialog):
@@ -392,6 +396,72 @@ class CommentHelp(QDialog):
     def cancel(self):
         self.commentPart.clear()
         self.close()
+
+
+class CommentWindow(QWidget):
+    def __init__(self, dish_name: str):
+        super(CommentWindow, self).__init__()
+        self.setFixedSize(800, 600)
+        self.setWindowTitle("用户评论")
+        self.dishName = dish_name
+
+        self.commentPart = CommentPart(self.dishName)
+        self.commentArea = QScrollArea(self)
+        self.commentArea.setWidget(self.commentPart)
+        self.commentArea.setWidgetResizable(True)
+        self.commentArea.setMinimumSize(700, 500)
+
+        self.allLayout = QVBoxLayout()
+        self.allLayout.addWidget(self.commentArea)
+        self.setLayout(self.allLayout)
+
+
+class CommentPart(QWidget):
+    def __init__(self, dish_name: str):
+        super(CommentPart, self).__init__()
+        self.dishName = dish_name
+        self.commentList = userInformDataBase.get_comment(self.dishName)
+        self.allLayout = QVBoxLayout()
+        self.show_comments()
+
+    def show_comments(self):
+        self.delete_all(self.allLayout)
+        self.commentList = userInformDataBase.get_comment(self.dishName)
+        for user_comment in self.commentList:
+            comment = Comment(user_comment)
+            self.allLayout.addWidget(comment)
+        self.allLayout.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        self.setLayout(self.allLayout)
+
+    def delete_all(self, this_layout):
+        if this_layout.count():
+            item_list = list(range(this_layout.count()))
+            item_list.reverse()  # 倒序删除，避免影响布局顺序
+            for i in item_list:
+                item = this_layout.itemAt(i)
+                this_layout.removeItem(item)
+                if item.widget():
+                    item.widget().deleteLater()
+                else:
+                    self.delete_all(item)
+
+
+class Comment(QWidget):
+    def __init__(self, comment_content: tuple):
+        super(Comment, self).__init__()
+        self.user = comment_content[0]
+        self.commentWord = comment_content[1]
+        self.time = comment_content[2]
+        self.setFixedSize(600, 100)
+
+        self.userLabel = QLabel(self.time + " " + self.user)
+        self.commentBrowser = QTextBrowser()
+        self.commentBrowser.setText(self.commentWord)
+
+        self.allLayout = QVBoxLayout()
+        self.allLayout.addWidget(self.userLabel)
+        self.allLayout.addWidget(self.commentBrowser)
+        self.setLayout(self.allLayout)
 
 
 class RecordWindow(QWidget):
