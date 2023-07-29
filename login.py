@@ -110,7 +110,7 @@ class SigninPage(QDialog):
     def lineedit_init(self):
         self.signinPwdLine.setEchoMode(QLineEdit.Password)
         self.signinPwd2Line.setEchoMode(QLineEdit.Password)
-        self.signinPwdLine.setPlaceholderText("密码长度不少于6位，不多于32位")
+        self.signinPwdLine.setPlaceholderText("长度不少于6位，不多于32位")
         self.signinPwd2Line.setPlaceholderText("请重复输入上述密码")
 
         self.signinUserLine.textChanged.connect(self.check_input_func)

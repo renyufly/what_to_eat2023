@@ -464,6 +464,8 @@ class Comment(QWidget):
         self.chatButton = QPushButton("对该用户发起聊天")
         self.chatButton.setFixedSize(125, 80)
         self.chatButton.clicked.connect(self.start_chat)
+        if self.user == self.curUser:
+            self.chatButton.setEnabled(False)
 
         self.commentLayout = QVBoxLayout()
         self.commentLayout.addWidget(self.userLabel)
