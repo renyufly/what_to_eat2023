@@ -558,7 +558,7 @@ class ReceiveMessageWindow(QWidget):
         self.messageArea = QScrollArea(self)
         self.messageArea.setWidget(self.messagePart)
         self.messageArea.setWidgetResizable(True)
-        self.messageArea.setMinimumSize(700, 500)
+        self.messageArea.setMinimumSize(1400, 600)
 
         self.allLayout = QVBoxLayout()
         self.allLayout.addWidget(self.userLabel)
@@ -575,23 +575,66 @@ class MessagePart(QWidget):
     def __init__(self, user_name: str):
         super(MessagePart, self).__init__()
         self.user_name = user_name
-        self.setFixedSize(700, 500)
+        self.messageList = userInformDataBase.get_messages(self.user_name)
         self.messageLayout = QVBoxLayout()
-        self.messageLayout.setAlignment(Qt.AlignTop)
         self.messageLayout.setSpacing(20)
-        self.messageLayout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(self.messageLayout)
         self.init_message_part()
 
     def init_message_part(self):
-        message_list = userInformDataBase.get_messages(self.user_name)
-        if message_list:
-            for message in message_list:
-                self.messageLayout.addWidget(QLabel(message[0]))
-                self.messageLayout.addWidget(QLabel(message[1]))
-                self.messageLayout.addWidget(QLabel(message[2]))
+        self.delete_all(self.messageLayout)
+        self.messageList = userInformDataBase.get_messages(self.user_name)
+        if self.messageList:
+            for message in self.messageList:
+                message_piece = Message(message, self.user_name)
+                self.messageLayout.addWidget(message_piece)
         else:
             self.messageLayout.addWidget(QLabel("暂无消息"))
+        self.messageLayout.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        self.setLayout(self.messageLayout)
+
+    def delete_all(self, this_layout):
+        if this_layout.count():
+            item_list = list(range(this_layout.count()))
+            item_list.reverse()  # 倒序删除，避免影响布局顺序
+            for i in item_list:
+                item = this_layout.itemAt(i)
+                this_layout.removeItem(item)
+                if item.widget():
+                    item.widget().deleteLater()
+                else:
+                    self.delete_all(item)
+
+
+class Message(QWidget):
+    def __init__(self, message_content: tuple, cur_user: str):
+        super(Message, self).__init__()
+        self.curUser = cur_user
+        self.messageSender = message_content[0]
+        self.messageWord = message_content[2]
+        self.time = message_content[3]
+        self.setFixedSize(1300, 100)
+
+        self.userLabel = QLabel(self.time + " " + self.messageSender)
+        self.userLabel.setFixedSize(800, 25)
+        self.messageBrowser = QTextBrowser()
+        self.messageBrowser.setText(self.messageWord)
+        self.chatButton = QPushButton("回复该用户")
+        self.chatButton.setFixedSize(100, 80)
+        self.chatButton.clicked.connect(self.start_chat)
+        if self.messageSender == self.curUser:
+            self.chatButton.setEnabled(False)
+
+        self.messageLayout = QVBoxLayout()
+        self.messageLayout.addWidget(self.userLabel)
+        self.messageLayout.addWidget(self.messageBrowser)
+        self.allLayout = QHBoxLayout()
+        self.allLayout.addLayout(self.messageLayout)
+        self.allLayout.addWidget(self.chatButton)
+        self.setLayout(self.allLayout)
+
+    def start_chat(self):
+        self.chatHelpWindow = ChatHelp(self.curUser, self.messageSender)
+        self.chatHelpWindow.show()
 
 
 class RecordWindow(QWidget):
