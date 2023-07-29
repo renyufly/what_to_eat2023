@@ -156,7 +156,7 @@ class MainWindow(QWidget):
 
     def like_counter(self):
         if not recordCon.addStarCounter(
-            self.userName, self.cafeName.currentText(), self.counterName.currentText()
+                self.userName, self.cafeName.currentText(), self.counterName.currentText()
         ):
             QMessageBox.information(self, "提示", "您已经收藏过该柜台！")
         else:
@@ -265,7 +265,7 @@ class Cuisine(QWidget):
 
     def like(self):
         if not recordCon.addStarDish(
-            self.username, self.cafeName, self.counterName, self.name.text()
+                self.username, self.cafeName, self.counterName, self.name.text()
         ):
             QMessageBox.information(self, "提示", "您已经收藏过该菜品！")
         else:
@@ -282,7 +282,7 @@ class Cuisine(QWidget):
 
 class RecordHelp(QDialog):
     def __init__(
-        self, user_name: str, dish_name: str, counter_name: str, cafe_name: str
+            self, user_name: str, dish_name: str, counter_name: str, cafe_name: str
     ):
         super(RecordHelp, self).__init__()
         self.setWindowTitle("添加记录")
@@ -337,13 +337,13 @@ class RecordHelp(QDialog):
 
     def add_record(self):
         if not recordCon.addDish(
-            self.userName,
-            self.dishName,
-            self.counterName,
-            self.cafeName,
-            self.timeLine.text(),
-            self.dishType.currentText(),
-            diningCon,
+                self.userName,
+                self.dishName,
+                self.counterName,
+                self.cafeName,
+                self.timeLine.text(),
+                self.dishType.currentText(),
+                diningCon,
         ):
             QMessageBox.critical(self, "错误", "错误的日期格式")
             self.timeLine.clear()
@@ -385,8 +385,8 @@ class CommentHelp(QDialog):
 
     def check_input_func(self):
         if (
-            self.commentPart.toPlainText() == ""
-            or self.commentPart.toPlainText().isspace()
+                self.commentPart.toPlainText() == ""
+                or self.commentPart.toPlainText().isspace()
         ):
             self.confirmButton.setEnabled(False)
         else:
@@ -395,7 +395,7 @@ class CommentHelp(QDialog):
     def add_comment(self):
         now_time = datetime.datetime.now().strftime("%Y-%m-%d")
         if not userInformDataBase.comment_dish(
-            self.userName, self.dishName, self.commentPart.toPlainText(), now_time
+                self.userName, self.dishName, self.commentPart.toPlainText(), now_time
         ):
             QMessageBox.critical(self, "错误", "用户不存在！")
         else:
@@ -461,8 +461,8 @@ class Comment(QWidget):
     def __init__(self, comment_content: tuple, cur_user: str):
         super(Comment, self).__init__()
         self.user = comment_content[0]
-        self.commentWord = comment_content[1]
-        self.time = comment_content[2]
+        self.commentWord = comment_content[2]
+        self.time = comment_content[3]
         self.curUser = cur_user
         self.setFixedSize(650, 100)
 
@@ -526,7 +526,7 @@ class ChatHelp(QDialog):
     def send_message(self):
         now_time = datetime.datetime.now().strftime("%Y-%m-%d")
         if not userInformDataBase.send_messages(
-            self.curUser, self.tarUser, self.chatPart.toPlainText(), now_time
+                self.curUser, self.tarUser, self.chatPart.toPlainText(), now_time
         ):
             QMessageBox.critical(self, "错误", "发送失败！")
         else:
@@ -803,12 +803,12 @@ class BookPart(QWidget):
 
 class Like(QWidget):
     def __init__(
-        self,
-        main_window: MainWindow,
-        father: BookPart,
-        star_item: str,
-        user_name: str,
-        search_type: int,
+            self,
+            main_window: MainWindow,
+            father: BookPart,
+            star_item: str,
+            user_name: str,
+            search_type: int,
     ):
         super(Like, self).__init__()
         self.mainWindow = main_window
@@ -951,7 +951,7 @@ class Rank(QWidget):
         self.counterName = temp_list[1]
         self.cafeName = temp_list[2]
         if not recordCon.addStarDish(
-            self.userName, self.cafeName, self.counterName, self.dishName
+                self.userName, self.cafeName, self.counterName, self.dishName
         ):
             QMessageBox.information(self, "提示", "您已经收藏过该菜品！")
         else:
@@ -1047,7 +1047,7 @@ class Recommend(QWidget):
         self.counterName = temp_list[1]
         self.cafeName = temp_list[2]
         if not recordCon.addStarDish(
-            self.userName, self.cafeName, self.counterName, self.dishName
+                self.userName, self.cafeName, self.counterName, self.dishName
         ):
             QMessageBox.information(self, "提示", "您已经收藏过该菜品！")
         else:
