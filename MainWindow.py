@@ -147,7 +147,7 @@ class MainWindow(QWidget):
 
     def like_counter(self):
         if not recordCon.addStarCounter(
-            self.userName, self.cafeName.currentText(), self.counterName.currentText()
+                self.userName, self.cafeName.currentText(), self.counterName.currentText()
         ):
             QMessageBox.information(self, "提示", "您已经收藏过该柜台！")
         else:
@@ -256,7 +256,7 @@ class Cuisine(QWidget):
 
     def like(self):
         if not recordCon.addStarDish(
-            self.username, self.cafeName, self.counterName, self.name.text()
+                self.username, self.cafeName, self.counterName, self.name.text()
         ):
             QMessageBox.information(self, "提示", "您已经收藏过该菜品！")
         else:
@@ -267,13 +267,13 @@ class Cuisine(QWidget):
         self.commentWindow.show()
 
     def check_comment(self):
-        self.dishCommentWindow = CommentWindow(self.name.text())
+        self.dishCommentWindow = CommentWindow(self.name.text(), self.username)
         self.dishCommentWindow.show()
 
 
 class RecordHelp(QDialog):
     def __init__(
-        self, user_name: str, dish_name: str, counter_name: str, cafe_name: str
+            self, user_name: str, dish_name: str, counter_name: str, cafe_name: str
     ):
         super(RecordHelp, self).__init__()
         self.setWindowTitle("添加记录")
@@ -328,13 +328,13 @@ class RecordHelp(QDialog):
 
     def add_record(self):
         if not recordCon.addDish(
-            self.userName,
-            self.dishName,
-            self.counterName,
-            self.cafeName,
-            self.timeLine.text(),
-            self.dishType.currentText(),
-            diningCon,
+                self.userName,
+                self.dishName,
+                self.counterName,
+                self.cafeName,
+                self.timeLine.text(),
+                self.dishType.currentText(),
+                diningCon,
         ):
             QMessageBox.critical(self, "错误", "错误的日期格式")
             self.timeLine.clear()
@@ -376,8 +376,8 @@ class CommentHelp(QDialog):
 
     def check_input_func(self):
         if (
-            self.commentPart.toPlainText() == ""
-            or self.commentPart.toPlainText().isspace()
+                self.commentPart.toPlainText() == ""
+                or self.commentPart.toPlainText().isspace()
         ):
             self.confirmButton.setEnabled(False)
         else:
@@ -386,7 +386,7 @@ class CommentHelp(QDialog):
     def add_comment(self):
         now_time = datetime.datetime.now().strftime("%Y-%m-%d")
         if not userInformDataBase.comment_dish(
-            self.userName, self.dishName, self.commentPart.toPlainText(), now_time
+                self.userName, self.dishName, self.commentPart.toPlainText(), now_time
         ):
             QMessageBox.critical(self, "错误", "用户不存在！")
         else:
@@ -399,13 +399,14 @@ class CommentHelp(QDialog):
 
 
 class CommentWindow(QWidget):
-    def __init__(self, dish_name: str):
+    def __init__(self, dish_name: str, user: str):
         super(CommentWindow, self).__init__()
         self.setFixedSize(800, 600)
         self.setWindowTitle("用户评论")
         self.dishName = dish_name
+        self.user = user
 
-        self.commentPart = CommentPart(self.dishName)
+        self.commentPart = CommentPart(self.dishName, self.user)
         self.commentArea = QScrollArea(self)
         self.commentArea.setWidget(self.commentPart)
         self.commentArea.setWidgetResizable(True)
@@ -417,10 +418,11 @@ class CommentWindow(QWidget):
 
 
 class CommentPart(QWidget):
-    def __init__(self, dish_name: str):
+    def __init__(self, dish_name: str, user: str):
         super(CommentPart, self).__init__()
         self.dishName = dish_name
         self.commentList = userInformDataBase.get_comment(self.dishName)
+        self.user = user
         self.allLayout = QVBoxLayout()
         self.show_comments()
 
@@ -428,7 +430,7 @@ class CommentPart(QWidget):
         self.delete_all(self.allLayout)
         self.commentList = userInformDataBase.get_comment(self.dishName)
         for user_comment in self.commentList:
-            comment = Comment(user_comment)
+            comment = Comment(user_comment, self.user)
             self.allLayout.addWidget(comment)
         self.allLayout.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         self.setLayout(self.allLayout)
@@ -447,21 +449,80 @@ class CommentPart(QWidget):
 
 
 class Comment(QWidget):
-    def __init__(self, comment_content: tuple):
+    def __init__(self, comment_content: tuple, cur_user: str):
         super(Comment, self).__init__()
         self.user = comment_content[0]
         self.commentWord = comment_content[1]
         self.time = comment_content[2]
-        self.setFixedSize(600, 100)
+        self.curUser = cur_user
+        self.setFixedSize(650, 100)
 
         self.userLabel = QLabel(self.time + " " + self.user)
+        self.userLabel.setFixedSize(400, 25)
         self.commentBrowser = QTextBrowser()
         self.commentBrowser.setText(self.commentWord)
+        self.chatButton = QPushButton("对该用户发起聊天")
+        self.chatButton.setFixedSize(125, 80)
+        self.chatButton.clicked.connect(self.start_chat)
 
-        self.allLayout = QVBoxLayout()
-        self.allLayout.addWidget(self.userLabel)
-        self.allLayout.addWidget(self.commentBrowser)
+        self.commentLayout = QVBoxLayout()
+        self.commentLayout.addWidget(self.userLabel)
+        self.commentLayout.addWidget(self.commentBrowser)
+        self.allLayout = QHBoxLayout()
+        self.allLayout.addLayout(self.commentLayout)
+        self.allLayout.addWidget(self.chatButton)
         self.setLayout(self.allLayout)
+
+    def start_chat(self):
+        self.chatHelpWindow = ChatHelp(self.curUser, self.user)
+        self.chatHelpWindow.show()
+
+
+class ChatHelp(QDialog):
+    def __init__(self, cur_user: str, target_user: str):
+        super(ChatHelp, self).__init__()
+        self.setWindowTitle("发起聊天")
+        self.setFixedSize(800, 300)
+        self.curUser = cur_user
+        self.tarUser = target_user
+
+        self.targetLabel = QLabel("目标用户：" + self.tarUser)
+        font = QFont("宋体", 14)
+        self.targetLabel.setFont(font)
+        self.chatPart = QTextEdit()
+        self.chatPart.textChanged.connect(self.check_input_func)
+        self.confirmButton = QPushButton("确认发送")
+        self.cancelButton = QPushButton("取消")
+        self.confirmButton.clicked.connect(self.send_message)
+        self.confirmButton.setEnabled(False)
+        self.cancelButton.clicked.connect(self.cancel)
+
+        self.buttonLayout = QHBoxLayout()
+        self.buttonLayout.addWidget(self.confirmButton)
+        self.buttonLayout.addWidget(self.cancelButton)
+        self.allLayout = QVBoxLayout()
+        self.allLayout.addWidget(self.targetLabel)
+        self.allLayout.addWidget(self.chatPart)
+        self.allLayout.addLayout(self.buttonLayout)
+        self.setLayout(self.allLayout)
+
+    def check_input_func(self):
+        if self.chatPart.toPlainText() == "":
+            self.confirmButton.setEnabled(False)
+        else:
+            self.confirmButton.setEnabled(True)
+
+    def send_message(self):
+        now_time = datetime.datetime.now().strftime("%Y-%m-%d")
+        if not userInformDataBase.send_messages(self.curUser, self.tarUser, self.chatPart.toPlainText(), now_time):
+            QMessageBox.critical(self, "错误", "发送失败！")
+        else:
+            QMessageBox.information(self, "提示", "发送成功！")
+            self.chatPart.clear()
+
+    def cancel(self):
+        self.chatPart.clear()
+        self.close()
 
 
 class RecordWindow(QWidget):
@@ -673,12 +734,12 @@ class BookPart(QWidget):
 
 class Like(QWidget):
     def __init__(
-        self,
-        main_window: MainWindow,
-        father: BookPart,
-        star_item: str,
-        user_name: str,
-        search_type: int,
+            self,
+            main_window: MainWindow,
+            father: BookPart,
+            star_item: str,
+            user_name: str,
+            search_type: int,
     ):
         super(Like, self).__init__()
         self.mainWindow = main_window
@@ -821,7 +882,7 @@ class Rank(QWidget):
         self.counterName = temp_list[1]
         self.cafeName = temp_list[2]
         if not recordCon.addStarDish(
-            self.userName, self.cafeName, self.counterName, self.dishName
+                self.userName, self.cafeName, self.counterName, self.dishName
         ):
             QMessageBox.information(self, "提示", "您已经收藏过该菜品！")
         else:
@@ -917,7 +978,7 @@ class Recommend(QWidget):
         self.counterName = temp_list[1]
         self.cafeName = temp_list[2]
         if not recordCon.addStarDish(
-            self.userName, self.cafeName, self.counterName, self.dishName
+                self.userName, self.cafeName, self.counterName, self.dishName
         ):
             QMessageBox.information(self, "提示", "您已经收藏过该菜品！")
         else:
